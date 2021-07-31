@@ -1,0 +1,81 @@
+type AuthResponse {
+  success: Boolean!
+  user: User!
+}
+
+input ChangePasswordInput {
+  newPassword: String!
+  oldPassword: String!
+}
+
+scalar Date
+
+input EditProfileInput {
+  bio: String
+  firstName: String!
+  lastName: String
+  username: String!
+}
+
+input FollowUserInput {
+  username: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  changePassword(input: ChangePasswordInput!): ResultResponse!
+  editProfile(input: EditProfileInput!): User!
+  followUser(input: FollowUserInput!): User!
+  logout: ResultResponse!
+
+  """Logs the user into the application"""
+  signIn(input: SignInInput!): AuthResponse!
+
+  """Signup new users"""
+  signUp(input: SignUpInput!): AuthResponse!
+  unfollowUser(input: FollowUserInput!): User!
+}
+
+type Query {
+  health: String!
+  me: User!
+}
+
+type ResultResponse {
+  success: Boolean!
+}
+
+type Session {
+  createdAt: Date!
+  id: ID!
+  updatedAt: Date!
+  userId: ID!
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}
+
+input SignUpInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  username: String!
+}
+
+type User {
+  bio: String
+  email: String!
+  firstName: String!
+  followers(page: Int!): [User!]!
+  following(page: Int!): [User!]!
+  id: ID!
+  lastName: String
+  username: String!
+}

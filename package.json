@@ -1,0 +1,49 @@
+{
+	"name": "nexus-tutorial",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"dev": "ts-node-dev --transpile-only --no-notify -r dotenv/config src/index.ts",
+		"build": "tsc",
+		"start": "node dist/index.js",
+		"db:migrate": "npx prisma migrate dev",
+		"db:generate": "npx prisma generate",
+		"db:reset": "npx prisma migrate reset",
+		"db:studio": "npx prisma studio --browser none",
+		"gql:schema": "ts-node -r dotenv/config src/graphql/schema.ts"
+	},
+	"dependencies": {
+		"@giraphql/core": "^2.10.2",
+		"@giraphql/plugin-scope-auth": "^2.6.0",
+		"@giraphql/plugin-simple-objects": "^2.4.4",
+		"@giraphql/plugin-validation": "^2.6.3",
+		"@prisma/client": "^2.23.0",
+		"@types/cookie-parser": "^1.4.2",
+		"@types/express": "^4.17.13",
+		"apollo-server-core": "^3.0.2",
+		"apollo-server-express": "^3.0.2",
+		"cloudinary": "^1.26.2",
+		"cookie-parser": "^1.4.5",
+		"cors": "^2.8.5",
+		"dotenv": "^10.0.0",
+		"express": "^4.17.1",
+		"graphql": "^15.5.0",
+		"graphql-upload": "^12.0.0",
+		"jsonwebtoken": "^8.5.1",
+		"prisma": "^2.27.0",
+		"secure-password": "^4.0.0",
+		"yup": "^0.32.9",
+		"zod": "^3.5.1"
+	},
+	"devDependencies": {
+		"@types/graphql-upload": "^8.0.6",
+		"@types/joi": "^17.2.3",
+		"@types/jsonwebtoken": "^8.5.4",
+		"@types/secure-password": "^3.1.1",
+		"cross-env": "^7.0.3",
+		"prisma-dbml-generator": "^0.6.0",
+		"ts-node-dev": "^1.1.6",
+		"typescript": "^4.3.2"
+	}
+}

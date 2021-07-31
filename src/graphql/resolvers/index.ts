@@ -1,0 +1,5 @@
+import './ResultResponse'
+import './auth/AuthResolver'
+import './post/PostResolver'
+import './user/UserResolver'
+import './user/FollowResolver'
