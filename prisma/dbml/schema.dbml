@@ -34,7 +34,8 @@ Table Post {
   id String [pk]
   user User [not null]
   userId String [not null]
-  body String
+  image String
+  caption String
   likes Like [not null]
   hashtags Hashtag [not null]
   createdAt DateTime [default: `now()`, not null]

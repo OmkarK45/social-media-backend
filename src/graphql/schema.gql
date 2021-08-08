@@ -9,6 +9,7 @@ input ChangePasswordInput {
 }
 
 input CreatePostInput {
+  caption: String!
   media: FileUpload!
 }
 
@@ -53,7 +54,7 @@ input LoginInput {
 
 type Mutation {
   changePassword(input: ChangePasswordInput!): ResultResponse!
-  createPost(input: CreatePostInput!): String!
+  createPost(input: CreatePostInput!): Post!
   editProfile(input: EditProfileInput!): User!
   followUser(input: FollowUserInput!): User!
   logout: ResultResponse!
@@ -71,7 +72,8 @@ type Mutation {
 }
 
 type Post {
-  body: String
+  caption: String
+  image: String
 }
 
 type ProfileResponse {
