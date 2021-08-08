@@ -1,5 +1,6 @@
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary'
 import dotEnv from 'dotenv'
+import { FileUpload } from 'graphql-upload'
 // just in case
 dotEnv.config()
 
@@ -13,16 +14,21 @@ cloudinary.config({
 	api_secret,
 })
 
-export async function upload(file: string): Promise<string> {
-	try {
-		const res: UploadApiResponse = await cloudinary.uploader.upload(file, {
-			moderation: 'webpurify',
-			folder: config.cloudinary.folder,
-		})
+export async function upload(file: FileUpload): Promise<UploadApiResponse> {
+	return new Promise((resolve, reject) => {
+		const uploadStream = cloudinary.uploader.upload_stream(
+			{
+				folder: config.cloudinary.folder,
+			},
+			(err, img) => {
+				if (img) {
+					resolve(img)
+				} else {
+					reject(err)
+				}
+			}
+		)
 
-		return res.url
-	} catch (error) {
-		console.log(error)
-		return `Image could not be uploaded. Error : ${error.message}`
-	}
+		file.createReadStream().pipe(uploadStream)
+	})
 }

@@ -20,24 +20,16 @@ SessionObject.implement({
 	fields: (t) => ({
 		id: t.exposeID('id'),
 		userId: t.exposeID('userId'),
-		createdAt: t.expose('createdAt', { type: 'Date' }),
-		updatedAt: t.expose('updatedAt', { type: 'Date' }),
+		createdAt: t.expose('createdAt', { type: 'DateTime' }),
+		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
 	}),
 })
 
-interface AuthResponse {
-	success: boolean
-	user: User
-}
-
-const AuthResponseObject = builder.objectRef<AuthResponse>('AuthResponse')
-
-AuthResponseObject.implement({
+const AuthResponseObject = builder.simpleObject('AuthResponse', {
 	fields: (t) => ({
-		success: t.exposeBoolean('success'),
+		success: t.boolean(),
 		user: t.field({
 			type: UserObject,
-			resolve: (result) => result.user,
 		}),
 	}),
 })

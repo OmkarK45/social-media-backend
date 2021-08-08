@@ -9,6 +9,7 @@ export const EditProfileInput = builder.inputType('EditProfileInput', {
 		}),
 		bio: t.string({ required: false }),
 		lastName: t.string({ required: false }),
-		firstName: t.string({ required: true }),
+		firstName: t.string(),
+		avatar: t.string({ required: false, validate: { url: true } }),
 	}),
 })

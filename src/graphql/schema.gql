@@ -8,17 +8,42 @@ input ChangePasswordInput {
   oldPassword: String!
 }
 
-scalar Date
+input CreatePostInput {
+  media: FileUpload!
+}
+
+scalar DateTime
 
 input EditProfileInput {
+  avatar: String
   bio: String
   firstName: String!
   lastName: String
   username: String!
 }
 
+"""The `Upload` scalar type represents a file upload."""
+scalar FileUpload
+
 input FollowUserInput {
   username: String!
+}
+
+type FollowerResponse {
+  followers: [User!]!
+  totalFollowers: Int!
+  totalPages: Int!
+}
+
+type FollowingResponse {
+  following: [User!]!
+  totalFollowing: Int!
+  totalPages: Int!
+}
+
+type HelloResponse {
+  hello: Boolean!
+  name: String!
 }
 
 input LoginInput {
@@ -28,9 +53,14 @@ input LoginInput {
 
 type Mutation {
   changePassword(input: ChangePasswordInput!): ResultResponse!
+  createPost(input: CreatePostInput!): String!
   editProfile(input: EditProfileInput!): User!
   followUser(input: FollowUserInput!): User!
   logout: ResultResponse!
+  sayHello(name: String!): HelloResponse!
+
+  """Searches user whose username matches given keyword"""
+  searchUser(keyword: String!): SearchResponse!
 
   """Logs the user into the application"""
   signIn(input: SignInInput!): AuthResponse!
@@ -40,19 +70,34 @@ type Mutation {
   unfollowUser(input: FollowUserInput!): User!
 }
 
+type Post {
+  body: String
+}
+
+type ProfileResponse {
+  user: User!
+}
+
 type Query {
   health: String!
   me: User!
+  seeProfile(username: String!): ProfileResponse!
+  whatTime: DateTime!
 }
 
 type ResultResponse {
   success: Boolean!
 }
 
+type SearchResponse {
+  total: Int!
+  users: [User!]!
+}
+
 type Session {
-  createdAt: Date!
+  createdAt: DateTime!
   id: ID!
-  updatedAt: Date!
+  updatedAt: DateTime!
   userId: ID!
 }
 
@@ -70,12 +115,15 @@ input SignUpInput {
 }
 
 type User {
+  avatar: String
   bio: String
+  createdAt: DateTime!
   email: String!
   firstName: String!
-  followers(page: Int!): [User!]!
-  following(page: Int!): [User!]!
+  followers(page: Int!): FollowerResponse!
+  following(page: Int!): FollowingResponse!
   id: ID!
   lastName: String
+  updatedAt: DateTime!
   username: String!
 }
