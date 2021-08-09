@@ -127,7 +127,7 @@ builder.mutationField('logout', (t) =>
 		},
 		resolve: async (_, _args, { res, session, prisma }) => {
 			await prisma.session.delete({ where: { id: session!.id } })
-			res.cookie('session', '', { httpOnly: true })
+			res.clearCookie('session')
 			return {
 				success: true,
 			}
