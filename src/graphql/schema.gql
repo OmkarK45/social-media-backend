@@ -94,6 +94,8 @@ type Query {
   feed(offset: Int!): [FeedPosts!]!
   health: String!
   me: User!
+  seeLikes(id: String!): [User!]!
+  seePost(id: String!): Post!
   seeProfile(username: String!): ProfileResponse!
 }
 

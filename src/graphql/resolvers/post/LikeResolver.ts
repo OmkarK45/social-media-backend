@@ -1,5 +1,6 @@
 import { builder } from '../../builder'
 import { ResultResponse } from '../ResultResponse'
+import { UserObject } from '../user/UserResolver'
 
 builder.mutationField('toggleLike', (t) =>
 	t.field({
@@ -42,6 +43,22 @@ builder.mutationField('toggleLike', (t) =>
 			return {
 				success: true,
 			}
+		},
+	})
+)
+
+builder.queryField('seeLikes', (t) =>
+	t.field({
+		type: [UserObject],
+		args: { id: t.arg.string({}) },
+		resolve: async (_, { id }, { prisma, user }) => {
+			const likes = await prisma.like.findMany({
+				where: {
+					postId: id,
+				},
+				select: { user: true },
+			})
+			return likes.map((like) => like.user)
 		},
 	})
 )

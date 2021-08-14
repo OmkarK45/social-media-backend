@@ -10,6 +10,7 @@ FeedResponse.implement({
 		id: t.exposeString('id'),
 		image: t.exposeString('image', { nullable: true }),
 		caption: t.exposeString('caption', { nullable: true }),
+		// probably a good idea would be to remove emails from here
 		user: t.field({
 			type: UserObject,
 			resolve: async (post, _, { prisma }) => {

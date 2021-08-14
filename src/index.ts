@@ -3,6 +3,7 @@ import express, { urlencoded } from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { graphqlUploadExpress } from 'graphql-upload'
+import { graphiqlMiddleware } from 'graphiql-middleware'
 
 import { config } from './lib/config'
 import { apolloServer } from './app'
@@ -10,9 +11,20 @@ import { apolloServer } from './app'
 dotEnv.config({
 	path: '../.env',
 })
-
 const app = express()
 
+app.use(
+	'/graphiql',
+	graphiqlMiddleware(
+		{
+			endpointURL: '/graphql',
+		},
+		{
+			headerEditorEnabled: true,
+			shouldPersistHeaders: true,
+		}
+	)
+)
 app.use(cookieParser())
 app.use(express.json())
 app.use(urlencoded({ extended: true }))

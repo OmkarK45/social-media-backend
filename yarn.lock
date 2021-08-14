@@ -1561,6 +1561,11 @@ graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.2.0, graceful-fs@^4.2.4:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.6.tgz#ff040b2b0853b23c3d31027523706f1885d76bee"
   integrity sha512-nTnJ528pbqxYanhpDYsi4Rd8MAeaBA67+RZ10CM1m3bTAVFEDcd5AuA4a6W5YkGZ1iNXHzZz8T6TBKLeBuNriQ==
 
+graphiql-middleware@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/graphiql-middleware/-/graphiql-middleware-0.0.4.tgz#6bb92ff47308a16871fd871f042dee175d9cdcd8"
+  integrity sha512-9pl4UrgNjg+kY8hiOSl2WaB54g1nSbiBAQHwH4GJL4NXPsmjchI0njub3afVpUP7QCBZtzKVrOJSEawdYN5PYg==
+
 graphql-tag@^2.11.0:
   version "2.12.4"
   resolved "https://registry.yarnpkg.com/graphql-tag/-/graphql-tag-2.12.4.tgz#d34066688a4f09e72d6f4663c74211e9b4b7c4bf"

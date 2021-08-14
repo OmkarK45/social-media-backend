@@ -1,9 +1,10 @@
-import { Post } from '@prisma/client'
+import { Post, prisma } from '@prisma/client'
 import { z } from 'zod'
 import { upload } from '../../../lib/upload'
 import { builder } from '../../builder'
 import { HashTag, parseHashtags } from '../../utils/hashtags'
 import { ResultResponse } from '../ResultResponse'
+import { UserObject } from '../user/UserResolver'
 // upload photo with caption
 
 const PostResponse = builder.objectRef<Post>('Post')
@@ -128,6 +129,20 @@ builder.mutationField('editPost', (t) =>
 						connectOrCreate: parseHashtags(input.caption),
 					},
 				},
+			})
+		},
+	})
+)
+
+// see individual post
+builder.queryField('seePost', (t) =>
+	t.field({
+		type: PostResponse,
+		args: { id: t.arg.string() },
+		resolve: async (_, { id }, { prisma }) => {
+			return await prisma.post.findUnique({
+				where: { id },
+				rejectOnNotFound: true,
 			})
 		},
 	})
