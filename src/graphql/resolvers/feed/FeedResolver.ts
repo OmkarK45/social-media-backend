@@ -10,7 +10,6 @@ FeedResponse.implement({
 		id: t.exposeString('id'),
 		image: t.exposeString('image', { nullable: true }),
 		caption: t.exposeString('caption', { nullable: true }),
-
 		user: t.field({
 			type: UserObject,
 			resolve: async (post, _, { prisma }) => {
@@ -27,8 +26,8 @@ builder.queryField('feed', (t) =>
 	t.field({
 		type: [FeedResponse],
 		args: { offset: t.arg.int({}) },
-
 		resolve: async (_parent, { offset }, { prisma, user }) => {
+			console.log('USER', user)
 			return await prisma.post.findMany({
 				// @TODO : this will probably will change as I do scroll
 				take: 5,

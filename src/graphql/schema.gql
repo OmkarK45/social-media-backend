@@ -76,6 +76,7 @@ type Mutation {
 
   """Signup new users"""
   signUp(input: SignUpInput!): AuthResponse!
+  toggleLike(id: String!): ResultResponse!
   unfollowUser(input: FollowUserInput!): User!
 }
 

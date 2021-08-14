@@ -2,8 +2,10 @@ import './ResultResponse'
 /** Auth Resolvers */
 import './auth/AuthResolver'
 
+// Probably keep these two in one file
 /** Post Resolvers */
 import './post/PostResolver'
+import './post/LikeResolver'
 
 /** User Resolvers */
 import './user/UserResolver'
