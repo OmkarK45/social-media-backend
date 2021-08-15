@@ -1,4 +1,5 @@
 import { Post, prisma } from '@prisma/client'
+import { connectionResolver } from '../../../lib/paginate'
 import { builder } from '../../builder'
 import { UserObject } from '../user/UserResolver'
 
@@ -27,8 +28,8 @@ builder.queryField('feed', (t) =>
 	t.field({
 		type: [FeedResponse],
 		args: { offset: t.arg.int({}) },
+		authScopes: { user: true },
 		resolve: async (_parent, { offset }, { prisma, user }) => {
-			console.log('USER', user)
 			return await prisma.post.findMany({
 				// @TODO : this will probably will change as I do scroll
 				take: 5,

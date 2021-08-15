@@ -8,6 +8,11 @@ input ChangePasswordInput {
   oldPassword: String!
 }
 
+input CreateCommentInput {
+  body: String!
+  postId: String!
+}
+
 input CreatePostInput {
   caption: String!
   media: FileUpload!
@@ -54,6 +59,11 @@ type FollowingResponse {
   totalPages: Int!
 }
 
+type Hashtag {
+  hashtag: String!
+  id: ID!
+}
+
 input LoginInput {
   email: String!
   password: String!
@@ -61,6 +71,7 @@ input LoginInput {
 
 type Mutation {
   changePassword(input: ChangePasswordInput!): ResultResponse!
+  createComment(input: CreateCommentInput!): ResultResponse!
   createPost(input: CreatePostInput!): Post!
   deletePost(id: String!): ResultResponse!
   editPost(input: EditPostInput!): Post!
@@ -82,8 +93,12 @@ type Mutation {
 
 type Post {
   caption: String
+  hashtags: [Hashtag!]!
   id: String!
   image: String
+  isLiked: Boolean!
+  isMine: Boolean!
+  user: User!
 }
 
 type ProfileResponse {

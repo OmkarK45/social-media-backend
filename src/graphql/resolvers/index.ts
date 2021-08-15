@@ -19,3 +19,6 @@ import './profile/ProfileResolver'
 
 /** Feed Resolvers */
 import './feed/FeedResolver'
+
+/** Comment Resolver */
+import './comments/CommentResolver'

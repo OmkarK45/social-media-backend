@@ -1,8 +1,10 @@
 import { Post, prisma } from '@prisma/client'
 import { z } from 'zod'
+
 import { upload } from '../../../lib/upload'
 import { builder } from '../../builder'
 import { HashTag, parseHashtags } from '../../utils/hashtags'
+import { HashtagObject } from '../hashtag/HashtagResolver'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 // upload photo with caption
@@ -14,6 +16,51 @@ PostResponse.implement({
 		id: t.exposeString('id'),
 		caption: t.exposeString('caption', { nullable: true }),
 		image: t.exposeString('image', { nullable: true }),
+		// @todo -> isMine, comments, user
+		isMine: t.boolean({
+			resolve: async ({ userId }, _, { user }) => {
+				if (!user) {
+					return false
+				}
+				return userId === user.id
+			},
+		}),
+		isLiked: t.boolean({
+			resolve: async ({ id }, _, { user, prisma }) => {
+				if (!user) {
+					return false
+				}
+				const hasLiked = await prisma.like.findUnique({
+					where: { postId_userId: { postId: id, userId: user.id } },
+					select: { id: true },
+				})
+				if (hasLiked) {
+					return true
+				}
+				return false
+			},
+		}),
+		user: t.field({
+			type: UserObject,
+			resolve: async ({ userId }, _, { prisma }) => {
+				return await prisma.user.findUnique({
+					where: { id: userId },
+					rejectOnNotFound: true,
+				})
+			},
+		}),
+		hashtags: t.field({
+			type: [HashtagObject],
+			resolve: async ({ id }, _, { prisma }) => {
+				return await prisma.hashtag.findMany({
+					where: {
+						posts: {
+							some: { id },
+						},
+					},
+				})
+			},
+		}),
 	}),
 })
 
