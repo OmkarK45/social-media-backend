@@ -1,7 +1,9 @@
 import SchemaBuilder from '@giraphql/core'
-import SimpleObjectsPlugin from '@giraphql/plugin-simple-objects'
 import ScopeAuthPlugin from '@giraphql/plugin-scope-auth'
+import DataloaderPlugin from '@giraphql/plugin-dataloader'
 import ValidationPlugin from '@giraphql/plugin-validation'
+import SimpleObjectsPlugin from '@giraphql/plugin-simple-objects'
+
 import { Context } from './context'
 import { FileUpload, GraphQLUpload } from 'graphql-upload'
 
@@ -19,7 +21,12 @@ export const builder = new SchemaBuilder<{
 	}
 }>({
 	defaultInputFieldRequiredness: true,
-	plugins: [ScopeAuthPlugin, SimpleObjectsPlugin, ValidationPlugin],
+	plugins: [
+		ScopeAuthPlugin,
+		SimpleObjectsPlugin,
+		ValidationPlugin,
+		DataloaderPlugin,
+	],
 	authScopes: async ({ user }) => ({
 		user: !!user,
 		unauthenticated: !user,

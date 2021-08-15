@@ -8,6 +8,13 @@ input ChangePasswordInput {
   oldPassword: String!
 }
 
+type Comment {
+  body: String!
+  id: String!
+  isMine: Boolean!
+  user: User!
+}
+
 input CreateCommentInput {
   body: String!
   postId: String!
@@ -19,6 +26,12 @@ input CreatePostInput {
 }
 
 scalar DateTime
+
+input EditCommentInput {
+  body: String!
+  id: String!
+  postId: String!
+}
 
 input EditPostInput {
   caption: String!
@@ -73,7 +86,9 @@ type Mutation {
   changePassword(input: ChangePasswordInput!): ResultResponse!
   createComment(input: CreateCommentInput!): ResultResponse!
   createPost(input: CreatePostInput!): Post!
+  deleteComment(id: String!): ResultResponse!
   deletePost(id: String!): ResultResponse!
+  editComment(input: EditCommentInput!): ResultResponse!
   editPost(input: EditPostInput!): Post!
   editProfile(input: EditProfileInput!): User!
   followUser(input: FollowUserInput!): User!
@@ -93,11 +108,14 @@ type Mutation {
 
 type Post {
   caption: String
+  comments: [Comment!]!
   hashtags: [Hashtag!]!
   id: String!
   image: String
   isLiked: Boolean!
   isMine: Boolean!
+  likes: Int!
+  totalComments: Int!
   user: User!
 }
 

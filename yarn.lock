@@ -73,6 +73,11 @@
   resolved "https://registry.yarnpkg.com/@giraphql/core/-/core-2.10.2.tgz#2bb118b76ee1db572757879bdf9522cf3863a44c"
   integrity sha512-hOHjWRjJ8sok/YLTR06XVQD/uYZf8m4+i2lTiwilwI4TCNY2BfRBp3TeRXhao1LJAtpnTV/lqz0C+oxiPaYb1w==
 
+"@giraphql/plugin-dataloader@^2.12.0":
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/@giraphql/plugin-dataloader/-/plugin-dataloader-2.12.0.tgz#efa9b49baf93406e5fb6ee0764ffbb86486bbb2a"
+  integrity sha512-BOnQRgee2M9pYaReGQL/6pJQBAoSfCxv6QVMdj65dAmhNMGwuc9F0Fps4bKUp1CD3gYUG5WKZiLUJaVm8YmA2w==
+
 "@giraphql/plugin-scope-auth@^2.6.0":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@giraphql/plugin-scope-auth/-/plugin-scope-auth-2.6.0.tgz#7515810aa846c8e4227a59ee0547b409dcbc9d9c"
@@ -1195,6 +1200,11 @@ currently-unhandled@^0.4.1:
   integrity sha1-mI3zP+qxke95mmE2nddsF635V+o=
   dependencies:
     array-find-index "^1.0.1"
+
+dataloader@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/dataloader/-/dataloader-2.0.0.tgz#41eaf123db115987e21ca93c005cd7753c55fe6f"
+  integrity sha512-YzhyDAwA4TaQIhM5go+vCLmU0UikghC/t9DTQYZR2M/UvZ1MdOhPezSDZcjj9uqQJOMqjLcpWtyW2iNINdlatQ==
 
 dateformat@~1.0.4-1.2.3:
   version "1.0.12"

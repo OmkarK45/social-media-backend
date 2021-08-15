@@ -8,7 +8,7 @@ builder.queryField('health', (t) =>
 		},
 	})
 )
-
+// todo => include a message field to show toast mesage on fronend for consistency
 export const ResultResponse = builder.simpleObject('ResultResponse', {
 	fields: (t) => ({
 		success: t.boolean(),

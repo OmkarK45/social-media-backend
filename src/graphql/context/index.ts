@@ -4,6 +4,7 @@ import { AuthenticationError, ExpressContext } from 'apollo-server-express'
 
 import { prisma } from '../../lib/db'
 import { decryptToken } from '../../lib/jwt'
+import Loader from '../loader'
 
 export interface Context {
 	req: Request
@@ -11,6 +12,7 @@ export interface Context {
 	user?: User
 	session?: Session
 	prisma: PrismaClient
+	loader: typeof Loader
 }
 
 export type JwtPayload = {
@@ -27,6 +29,7 @@ export async function makeGraphQLContext({
 		req,
 		res,
 		prisma,
+		loader: Loader,
 	}
 	const token = req.cookies['session']
 	if (!token) {

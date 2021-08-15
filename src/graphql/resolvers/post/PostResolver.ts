@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { upload } from '../../../lib/upload'
 import { builder } from '../../builder'
 import { HashTag, parseHashtags } from '../../utils/hashtags'
+import { CommentObject } from '../comments/CommentResolver'
 import { HashtagObject } from '../hashtag/HashtagResolver'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
@@ -60,6 +61,23 @@ PostResponse.implement({
 					},
 				})
 			},
+		}),
+		likes: t.int({
+			resolve: async ({ id }, _, { prisma }) => {
+				return prisma.like.count({ where: { postId: id } })
+			},
+		}),
+		comments: t.field({
+			type: [CommentObject],
+			resolve: async ({ id }, _, { prisma }) => {
+				return await prisma.comment.findMany({
+					where: { post: { id } },
+				})
+			},
+		}),
+		totalComments: t.int({
+			resolve: ({ id }, _, { prisma }) =>
+				prisma.comment.count({ where: { postId: id } }),
 		}),
 	}),
 })
