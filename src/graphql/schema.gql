@@ -3,6 +3,11 @@ type AuthResponse {
   user: User!
 }
 
+type Bar implements Node {
+  id: ID!
+  text: String!
+}
+
 input ChangePasswordInput {
   newPassword: String!
   oldPassword: String!
@@ -72,6 +77,22 @@ type FollowingResponse {
   totalPages: Int!
 }
 
+type Foo implements Node {
+  bars(after: String, before: String, first: Int, last: Int, oldestFirst: Boolean!): FooBarsConnection!
+  id: ID!
+  name: String!
+}
+
+type FooBarsConnection {
+  edges: [FooBarsConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type FooBarsConnectionEdge {
+  cursor: String!
+  node: Bar!
+}
+
 type Hashtag {
   hashtag: String!
   id: ID!
@@ -83,6 +104,8 @@ input LoginInput {
 }
 
 type Mutation {
+  addBar(fooId: Int!, text: String!): String!
+  addFoo(name: String!): String!
   changePassword(input: ChangePasswordInput!): ResultResponse!
   createComment(input: CreateCommentInput!): ResultResponse!
   createPost(input: CreatePostInput!): Post!
@@ -106,6 +129,17 @@ type Mutation {
   unfollowUser(input: FollowUserInput!): User!
 }
 
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type Post {
   caption: String
   comments: [Comment!]!
@@ -124,12 +158,25 @@ type ProfileResponse {
 }
 
 type Query {
+  bars(after: String, before: String, first: Int, last: Int): QueryBarsConnection!
   feed(offset: Int!): [FeedPosts!]!
   health: String!
   me: User!
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
   seeLikes(id: String!): [User!]!
   seePost(id: String!): Post!
   seeProfile(username: String!): ProfileResponse!
+}
+
+type QueryBarsConnection {
+  edges: [QueryBarsConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QueryBarsConnectionEdge {
+  cursor: String!
+  node: Bar!
 }
 
 type ResultResponse {

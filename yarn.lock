@@ -78,6 +78,16 @@
   resolved "https://registry.yarnpkg.com/@giraphql/plugin-dataloader/-/plugin-dataloader-2.12.0.tgz#efa9b49baf93406e5fb6ee0764ffbb86486bbb2a"
   integrity sha512-BOnQRgee2M9pYaReGQL/6pJQBAoSfCxv6QVMdj65dAmhNMGwuc9F0Fps4bKUp1CD3gYUG5WKZiLUJaVm8YmA2w==
 
+"@giraphql/plugin-prisma@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@giraphql/plugin-prisma/-/plugin-prisma-0.7.0.tgz#093a1d2709f7942a6686a67a8f41318e9ac43682"
+  integrity sha512-5mxze1pCqvoqph4JrRHpSFdMKZg0S6gJ9pypP+amJCSzRAUb8QfhDvMyHSnwjN+n1JiWo7CE5DFOpxyZdxzrcA==
+
+"@giraphql/plugin-relay@^2.14.0":
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/@giraphql/plugin-relay/-/plugin-relay-2.14.0.tgz#5915a091089ba94eb3a3c37364b077840cfc47bf"
+  integrity sha512-zO0Iece6cg4Pv4C5VxtPb5d3V/FQG+uJuRDyKUqueX1ZRlz40s398fYSDDDFxm54xDvJb/2dgW6S5RlmOq+r+g==
+
 "@giraphql/plugin-scope-auth@^2.6.0":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@giraphql/plugin-scope-auth/-/plugin-scope-auth-2.6.0.tgz#7515810aa846c8e4227a59ee0547b409dcbc9d9c"

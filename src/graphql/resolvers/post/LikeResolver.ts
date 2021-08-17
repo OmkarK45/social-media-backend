@@ -1,4 +1,5 @@
 import { builder } from '~/graphql/builder'
+import { connectionResolver } from '~/lib/paginate'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 
@@ -53,6 +54,11 @@ builder.queryField('seeLikes', (t) =>
 		type: [UserObject],
 		args: { id: t.arg.string({}) },
 		resolve: async (_, { id }, { prisma, user }) => {
+			const result = await connectionResolver(
+				{ first: 1, last: 0 },
+				prisma.like
+			)
+			console.log(JSON.stringify(result, null, 2))
 			const likes = await prisma.like.findMany({
 				where: {
 					postId: id,

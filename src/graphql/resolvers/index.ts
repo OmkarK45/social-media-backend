@@ -22,3 +22,5 @@ import './feed/FeedResolver'
 
 /** Comment Resolver */
 import './comments/CommentResolver'
+
+import './testResolver'
