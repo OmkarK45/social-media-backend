@@ -1,5 +1,5 @@
 import { Hashtag } from '@prisma/client'
-import { builder } from '../../builder'
+import { builder } from '~/graphql/builder'
 
 export const HashtagObject = builder.objectRef<Hashtag>('Hashtag')
 

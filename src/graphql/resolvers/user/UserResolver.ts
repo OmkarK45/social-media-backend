@@ -1,6 +1,7 @@
-import { builder } from '../../builder'
 import { User } from '@prisma/client'
-import { EditProfileInput } from '../../input/UserInput'
+
+import { builder } from '~/graphql/builder'
+import { EditProfileInput } from '~/graphql/input'
 
 export const UserObject = builder.objectRef<User>('User')
 

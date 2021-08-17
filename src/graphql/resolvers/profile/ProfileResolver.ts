@@ -4,6 +4,7 @@ import { UserObject } from '../user/UserResolver'
 const ProfileResponse = builder.simpleObject('ProfileResponse', {
 	fields: (t) => ({
 		user: t.field({ type: UserObject }),
+		// TODO : reveal posts here as well.
 	}),
 })
 

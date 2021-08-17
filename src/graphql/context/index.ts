@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
 import { User, Session, PrismaClient } from '@prisma/client'
-import { AuthenticationError, ExpressContext } from 'apollo-server-express'
+import { ExpressContext } from 'apollo-server-express'
 
-import { prisma } from '../../lib/db'
-import { decryptToken } from '../../lib/jwt'
+import { prisma } from '~/lib/db'
+import { decryptToken } from '~/lib/jwt'
 import Loader from '../loader'
 
 export interface Context {

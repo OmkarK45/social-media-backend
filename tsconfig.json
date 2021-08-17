@@ -18,10 +18,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
-    // "baseUrl": ".", 
-    // "paths": {
-    //   "~/*" : ["./src/*"]
-    // }
+    "baseUrl": ".", 
+    "paths": {
+      "~/*" : ["./src/*"]
+    }
   },
   "exclude": [
     "./node_modules/*",

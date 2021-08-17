@@ -1,4 +1,4 @@
-import { builder } from '../../builder'
+import { builder } from '~/graphql/builder'
 import { UserObject } from '../user/UserResolver'
 
 const SearchResponse = builder.simpleObject('SearchResponse', {

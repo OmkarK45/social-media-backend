@@ -1,4 +1,4 @@
-import { builder } from '../../builder'
+import { builder } from '~/graphql/builder'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 
@@ -47,6 +47,7 @@ builder.mutationField('toggleLike', (t) =>
 	})
 )
 
+// TODO : Paginate this
 builder.queryField('seeLikes', (t) =>
 	t.field({
 		type: [UserObject],

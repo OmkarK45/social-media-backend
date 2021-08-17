@@ -1,17 +1,14 @@
-import { Session, User } from '@prisma/client'
+import { Session } from '@prisma/client'
 
-import { builder } from '../../builder'
-import { JwtPayload } from '../../context'
+import { builder } from '~/graphql/builder'
+import { JwtPayload } from '~/graphql/context'
 import { UserObject } from '../user/UserResolver'
-import { ChangePasswordInput, SignInInput, SignUpInput } from '../../input'
+import { ChangePasswordInput, SignInInput, SignUpInput } from '~/graphql/input'
 
-import { createToken } from '../../../lib/jwt'
-import {
-	hashPassword,
-	isValidPassword,
-	verifyPassword,
-} from '../../../lib/password'
-import { login } from '../../../lib/auth'
+import { login } from '~/lib/auth'
+import { createToken } from '~/lib/jwt'
+import { hashPassword, isValidPassword, verifyPassword } from '~/lib/password'
+
 import { ResultResponse } from '../ResultResponse'
 
 export const SessionObject = builder.objectRef<Session>('Session')

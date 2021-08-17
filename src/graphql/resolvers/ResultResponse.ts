@@ -1,4 +1,4 @@
-import { builder } from '../builder'
+import { builder } from '~/graphql/builder'
 
 builder.queryField('health', (t) =>
 	t.field({

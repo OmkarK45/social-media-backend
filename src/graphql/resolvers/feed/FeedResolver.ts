@@ -1,6 +1,5 @@
 import { Post, prisma } from '@prisma/client'
-import { connectionResolver } from '../../../lib/paginate'
-import { builder } from '../../builder'
+import { builder } from '~/graphql/builder'
 import { UserObject } from '../user/UserResolver'
 
 // Look into this FeedPosts -> Post

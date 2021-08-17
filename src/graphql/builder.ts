@@ -4,7 +4,7 @@ import DataloaderPlugin from '@giraphql/plugin-dataloader'
 import ValidationPlugin from '@giraphql/plugin-validation'
 import SimpleObjectsPlugin from '@giraphql/plugin-simple-objects'
 
-import { Context } from './context'
+import { Context } from '~/graphql/context'
 import { FileUpload, GraphQLUpload } from 'graphql-upload'
 
 export const builder = new SchemaBuilder<{

@@ -1,4 +1,4 @@
-import { builder } from '../../../graphql/builder'
+import { builder } from '~/graphql/builder'
 import { UserObject } from './UserResolver'
 
 const FollowUserInput = builder.inputType('FollowUserInput', {

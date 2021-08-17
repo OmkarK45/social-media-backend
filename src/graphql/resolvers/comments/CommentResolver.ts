@@ -1,10 +1,10 @@
 import { Comment } from '@prisma/client'
 import { string } from 'zod'
 
-import { builder } from '../../builder'
+import { builder } from '~/graphql/builder'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
-import { Context } from '../../context'
+import { Context } from '~/graphql/context'
 
 export const CommentObject = builder.objectRef<Comment>('Comment')
 
@@ -57,7 +57,9 @@ builder.mutationField('createComment', (t) =>
 					user: { connect: { id: user!.id } },
 				},
 			})
-			// todo customize this Result response to include id as well. I might need comment id on FE
+			/**
+			 * TODO: customize this Result response to include id as well
+			 * */
 			return { success: true, id: newComment.id }
 		},
 	})
@@ -115,7 +117,7 @@ builder.mutationField('deleteComment', (t) =>
 			if (!foundComment) {
 				return { success: false }
 			}
-			if (foundComment.userId !== user.id) {
+			if (foundComment.userId !== user!.id) {
 				throw new Error('You are not authorized to do this operation.')
 			} else {
 				await prisma.comment.delete({
