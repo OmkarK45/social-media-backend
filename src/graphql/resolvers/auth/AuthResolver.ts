@@ -10,6 +10,7 @@ import { createToken } from '~/lib/jwt'
 import { hashPassword, isValidPassword, verifyPassword } from '~/lib/password'
 
 import { ResultResponse } from '../ResultResponse'
+import { prisma } from '~/lib/db'
 
 export const SessionObject = builder.objectRef<Session>('Session')
 
@@ -34,9 +35,8 @@ const AuthResponseObject = builder.simpleObject('AuthResponse', {
 builder.mutationField('signUp', (t) =>
 	t.field({
 		type: AuthResponseObject,
-		description: 'Signup new users',
 		args: { input: t.arg({ type: SignUpInput, required: true }) },
-		resolve: async (_, { input }, { res, prisma }) => {
+		resolve: async (_, { input }, { res }) => {
 			const existingUser = await prisma.user.findFirst({
 				where: {
 					OR: [{ email: input.email }, { username: input.username }],
@@ -84,11 +84,10 @@ builder.mutationField('signUp', (t) =>
 builder.mutationField('signIn', (t) =>
 	t.field({
 		type: AuthResponseObject,
-		description: 'Logs the user into the application',
 		args: {
 			input: t.arg({ type: SignInInput, required: true }),
 		},
-		resolve: async (_, { input }, { res, prisma }) => {
+		resolve: async (_, { input }, { res }) => {
 			const user = await login(input.email, input.password)
 			const session = await prisma.session.create({
 				data: {
@@ -122,7 +121,7 @@ builder.mutationField('logout', (t) =>
 		authScopes: {
 			user: true,
 		},
-		resolve: async (_, _args, { res, session, prisma }) => {
+		resolve: async (_, _args, { res, session }) => {
 			await prisma.session.delete({ where: { id: session!.id } })
 			res.clearCookie('session')
 			return {
@@ -139,7 +138,7 @@ builder.mutationField('changePassword', (t) =>
 			input: t.arg({ type: ChangePasswordInput, required: true }),
 		},
 		authScopes: { unauthenticated: false, user: true },
-		resolve: async (_, { input }, { prisma, res, user, session }) => {
+		resolve: async (_, { input }, { res, user, session }) => {
 			const isValid = await verifyPassword(
 				user!.hashedPassword,
 				input.oldPassword

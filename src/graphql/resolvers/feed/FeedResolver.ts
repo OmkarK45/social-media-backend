@@ -1,5 +1,8 @@
-import { Post, prisma } from '@prisma/client'
+import { resolveArrayConnection } from '@giraphql/plugin-relay'
+import { Post } from '@prisma/client'
 import { builder } from '~/graphql/builder'
+import { connectionForPrisma, resolveConnection } from '~/lib/cursor'
+import { prisma } from '~/lib/db'
 import { UserObject } from '../user/UserResolver'
 
 // Look into this FeedPosts -> Post
@@ -13,7 +16,7 @@ FeedResponse.implement({
 		// probably a good idea would be to remove emails from here
 		user: t.field({
 			type: UserObject,
-			resolve: async (post, _, { prisma }) => {
+			resolve: async (post, _args, _ctx) => {
 				return await prisma.user.findUnique({
 					where: { id: post.userId },
 					rejectOnNotFound: true,
@@ -26,20 +29,36 @@ FeedResponse.implement({
 builder.queryField('feed', (t) =>
 	t.field({
 		type: [FeedResponse],
-		args: { offset: t.arg.int({}) },
+		args: {
+			before: t.arg.string({}),
+			after: t.arg.string(),
+			offset: t.arg.int(),
+		},
 		authScopes: { user: true },
-		resolve: async (_parent, { offset }, { prisma, user }) => {
-			return await prisma.post.findMany({
-				// @TODO : this will probably will change as I do scroll
-				take: 5,
-				skip: offset,
+		resolve: async (_parent, args, { user }) => {
+			const users = await prisma.post.findMany({
 				where: {
 					OR: [
 						{ user: { followers: { some: { id: user!.id } } } },
 						{ userId: user?.id },
 					],
 				},
+				...connectionForPrisma(args, 'createdAt'),
 			})
+			console.log(
+				JSON.stringify(
+					resolveArrayConnection(
+						{
+							args,
+						},
+						users
+					),
+					null,
+					2
+				)
+			)
+			resolveArrayConnection({ args }, users)
+			return users
 		},
 	})
 )

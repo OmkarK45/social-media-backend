@@ -1,10 +1,10 @@
 import SchemaBuilder from '@giraphql/core'
+import RelayPlugin from '@giraphql/plugin-relay'
 import ScopeAuthPlugin from '@giraphql/plugin-scope-auth'
 import DataloaderPlugin from '@giraphql/plugin-dataloader'
 import ValidationPlugin from '@giraphql/plugin-validation'
 import SimpleObjectsPlugin from '@giraphql/plugin-simple-objects'
-import RelayPlugin from '@giraphql/plugin-relay'
-import PrismaPlugin, { PrismaTypes } from '@giraphql/plugin-prisma'
+import PrismaPlugin from '@giraphql/plugin-prisma'
 
 import { Context } from '~/graphql/context'
 import { FileUpload, GraphQLUpload } from 'graphql-upload'
@@ -37,8 +37,10 @@ export const builder = new SchemaBuilder<{
 		unauthenticated: !user,
 	}),
 	relayOptions: {
-		clientMutationId: 'omit',
-		cursorType: 'String',
+		nodeQueryOptions: {},
+		nodesQueryOptions: {},
+		nodeTypeOptions: {},
+		pageInfoTypeOptions: {},
 	},
 	prisma: {
 		client: prisma,

@@ -1,4 +1,5 @@
 import { builder } from '~/graphql/builder'
+import { prisma } from '~/lib/db'
 import { UserObject } from './UserResolver'
 
 const FollowUserInput = builder.inputType('FollowUserInput', {
@@ -10,7 +11,7 @@ builder.mutationField('followUser', (t) =>
 		type: UserObject,
 		args: { input: t.arg({ type: FollowUserInput }) },
 		authScopes: { user: true },
-		resolve: async (_, { input }, { prisma, user }) => {
+		resolve: async (_, { input }, { user }) => {
 			const updatedUser = await prisma.user.update({
 				where: { id: user!.id },
 				data: {
@@ -30,7 +31,7 @@ builder.mutationField('unfollowUser', (t) =>
 		type: UserObject,
 		args: { input: t.arg({ type: FollowUserInput }) },
 		authScopes: { user: true },
-		resolve: async (_, { input }, { prisma, user }) => {
+		resolve: async (_, { input }, { user }) => {
 			const updatedUser = await prisma.user.update({
 				where: { id: user!.id },
 				data: {

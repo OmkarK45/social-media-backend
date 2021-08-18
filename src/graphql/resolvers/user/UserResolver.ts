@@ -2,6 +2,7 @@ import { User } from '@prisma/client'
 
 import { builder } from '~/graphql/builder'
 import { EditProfileInput } from '~/graphql/input'
+import { prisma } from '~/lib/db'
 
 export const UserObject = builder.objectRef<User>('User')
 
@@ -45,7 +46,7 @@ UserObject.implement({
 
 			args: { page: t.arg.int() },
 
-			resolve: async (_, { page }, { prisma, user }) => {
+			resolve: async (_, { page }, { user }) => {
 				const followers = await prisma.user
 					.findUnique({ where: { email: user!.email } })
 					.followers({
@@ -72,7 +73,7 @@ UserObject.implement({
 			type: FollowingResponse,
 			authScopes: { user: true },
 			args: { page: t.arg.int() },
-			resolve: async (_, { page }, { prisma, user }) => {
+			resolve: async (_, { page }, { user }) => {
 				const following = await prisma.user
 					.findUnique({
 						where: { email: user!.email },
@@ -99,7 +100,7 @@ builder.queryField('me', (t) =>
 	t.field({
 		type: UserObject,
 		authScopes: { user: true },
-		resolve: async (_, _args, { prisma, user }) => {
+		resolve: async (_, _args, { user }) => {
 			return await prisma.user.findUnique({
 				where: { email: user?.email },
 				rejectOnNotFound: true,
@@ -116,7 +117,7 @@ builder.mutationField('editProfile', (t) =>
 			user: true,
 			unauthenticated: false,
 		},
-		resolve: async (_parent, { input }, { prisma, user }) => {
+		resolve: async (_parent, { input }, { user }) => {
 			const updatedUser = await prisma.user.update({
 				where: { email: user!.email },
 				data: {

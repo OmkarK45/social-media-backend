@@ -1,12 +1,13 @@
 import { prisma } from '~/lib/db'
 import { builder } from '../builder'
 
-builder.prismaNode(prisma.foo, {
-	findUnique: (id) => ({ id: Number(id)! }),
+builder.prismaNode(prisma.user, {
+	name: 'NewUser',
+	findUnique: (id) => ({ id }),
 	id: { resolve: (user) => user.id },
 	fields: (t) => ({
-		name: t.exposeString('name'),
-		bars: t.relatedConnection('bars', {
+		username: t.exposeString('username'),
+		posts: t.relatedConnection('posts', {
 			cursor: 'id',
 			args: {
 				oldestFirst: t.arg.boolean(),
@@ -21,19 +22,20 @@ builder.prismaNode(prisma.foo, {
 	}),
 })
 
-builder.prismaNode(prisma.bar, {
-	findUnique: (id) => ({ id: Number(id) }),
+builder.prismaNode(prisma.post, {
+	name: 'PostNode',
+	findUnique: (id) => ({ id }),
 	id: { resolve: (post) => post.id },
 	fields: (t) => ({
-		text: t.exposeString('text'),
+		id: t.exposeString('id'),
 	}),
 })
 
-builder.queryField('bars', (t) =>
+builder.queryField('allPosts', (t) =>
 	t.prismaConnection({
-		type: prisma.bar,
+		type: prisma.post,
 		cursor: 'id',
-		resolve: (query) => prisma.bar.findMany(query),
+		resolve: (query) => prisma.post.findMany(query),
 	})
 )
 
@@ -41,7 +43,7 @@ builder.mutationField('addFoo', (t) =>
 	t.field({
 		type: 'String',
 		args: { name: t.arg.string() },
-		resolve: async (_, { name }, { prisma }) => {
+		resolve: async (_, { name }, _ctx) => {
 			await prisma.foo.create({
 				data: { name: 'Omkar' },
 			})
@@ -54,7 +56,7 @@ builder.mutationField('addBar', (t) =>
 	t.field({
 		type: 'String',
 		args: { text: t.arg.string(), fooId: t.arg.int() },
-		resolve: async (_, { text, fooId }, { prisma }) => {
+		resolve: async (_, { text, fooId }, _ctx) => {
 			await prisma.bar.create({
 				data: {
 					text,

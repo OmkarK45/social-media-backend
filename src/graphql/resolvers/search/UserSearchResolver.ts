@@ -1,4 +1,5 @@
 import { builder } from '~/graphql/builder'
+import { prisma } from '~/lib/db'
 import { UserObject } from '../user/UserResolver'
 
 const SearchResponse = builder.simpleObject('SearchResponse', {
@@ -11,9 +12,8 @@ const SearchResponse = builder.simpleObject('SearchResponse', {
 builder.mutationField('searchUser', (t) =>
 	t.field({
 		type: SearchResponse,
-		description: 'Searches user whose username matches given keyword',
 		args: { keyword: t.arg.string() },
-		resolve: async (_, { keyword }, { prisma }) => {
+		resolve: async (_, { keyword }, _ctx) => {
 			const usersWithCount = await prisma.$transaction([
 				prisma.user.count({
 					where: { username: { startsWith: keyword.toLowerCase() } },

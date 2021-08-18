@@ -1,4 +1,5 @@
 import { builder } from '~/graphql/builder'
+import { prisma } from '~/lib/db'
 import { connectionResolver } from '~/lib/paginate'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
@@ -7,7 +8,7 @@ builder.mutationField('toggleLike', (t) =>
 	t.field({
 		type: ResultResponse,
 		args: { id: t.arg.string({}) },
-		resolve: async (_, { id }, { user, prisma }) => {
+		resolve: async (_, { id }, { user }) => {
 			const like = await prisma.like.findUnique({
 				where: {
 					postId_userId: {
@@ -53,7 +54,7 @@ builder.queryField('seeLikes', (t) =>
 	t.field({
 		type: [UserObject],
 		args: { id: t.arg.string({}) },
-		resolve: async (_, { id }, { prisma, user }) => {
+		resolve: async (_, { id }, { user }) => {
 			const result = await connectionResolver(
 				{ first: 1, last: 0 },
 				prisma.like

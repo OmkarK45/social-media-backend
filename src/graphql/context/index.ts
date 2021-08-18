@@ -11,7 +11,7 @@ export interface Context {
 	res: Response
 	user?: User
 	session?: Session
-	prisma: PrismaClient
+	// TODO : remove prisma from here
 	loader: typeof Loader
 }
 
@@ -28,7 +28,6 @@ export async function makeGraphQLContext({
 	let ctx: Context = {
 		req,
 		res,
-		prisma,
 		loader: Loader,
 	}
 	const token = req.cookies['session']

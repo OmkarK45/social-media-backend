@@ -5,6 +5,7 @@ import { builder } from '~/graphql/builder'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 import { Context } from '~/graphql/context'
+import { prisma } from '~/lib/db'
 
 export const CommentObject = builder.objectRef<Comment>('Comment')
 
@@ -19,7 +20,7 @@ CommentObject.implement({
 				const result = await context.loader.loadUsersById(ids)
 				return result
 			},
-			resolve: ({ userId }, _, { prisma }) => {
+			resolve: ({ userId }) => {
 				return userId
 			},
 		}),
@@ -49,7 +50,7 @@ builder.mutationField('createComment', (t) =>
 		type: ResultResponse,
 		args: { input: t.arg({ type: CreateCommentInput }) },
 		authScopes: { user: true },
-		resolve: async (_parent, { input }, { prisma, user }) => {
+		resolve: async (_parent, { input }, { user }) => {
 			const newComment = await prisma.comment.create({
 				data: {
 					body: input.body,
@@ -82,7 +83,7 @@ builder.mutationField('editComment', (t) =>
 	t.field({
 		type: ResultResponse,
 		args: { input: t.arg({ type: EditCommentInput }) },
-		resolve: async (_, { input }, { prisma, user }) => {
+		resolve: async (_, { input }, { user }) => {
 			const foundComment = await prisma.comment.findUnique({
 				where: { id: input.id },
 				rejectOnNotFound: true,
@@ -110,7 +111,7 @@ builder.mutationField('deleteComment', (t) =>
 	t.field({
 		type: ResultResponse,
 		args: { id: t.arg.string() },
-		resolve: async (_, { id }, { prisma, user }) => {
+		resolve: async (_, { id }, { user }) => {
 			const foundComment = await prisma.comment.findUnique({
 				where: { id },
 			})

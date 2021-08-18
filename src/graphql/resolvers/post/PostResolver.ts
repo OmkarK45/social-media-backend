@@ -1,5 +1,6 @@
-import { Post, prisma } from '@prisma/client'
+import { Post } from '@prisma/client'
 import { z } from 'zod'
+import { prisma } from '~/lib/db'
 
 import { upload } from '../../../lib/upload'
 import { builder } from '../../builder'
@@ -27,7 +28,7 @@ PostResponse.implement({
 			},
 		}),
 		isLiked: t.boolean({
-			resolve: async ({ id }, _, { user, prisma }) => {
+			resolve: async ({ id }, _, { user }) => {
 				if (!user) {
 					return false
 				}
@@ -43,7 +44,7 @@ PostResponse.implement({
 		}),
 		user: t.field({
 			type: UserObject,
-			resolve: async ({ userId }, _, { prisma }) => {
+			resolve: async ({ userId }, _, _ctx) => {
 				return await prisma.user.findUnique({
 					where: { id: userId },
 					rejectOnNotFound: true,
@@ -52,7 +53,7 @@ PostResponse.implement({
 		}),
 		hashtags: t.field({
 			type: [HashtagObject],
-			resolve: async ({ id }, _, { prisma }) => {
+			resolve: async ({ id }, _, _ctx) => {
 				return await prisma.hashtag.findMany({
 					where: {
 						posts: {
@@ -63,20 +64,20 @@ PostResponse.implement({
 			},
 		}),
 		likes: t.int({
-			resolve: async ({ id }, _, { prisma }) => {
+			resolve: async ({ id }, _, _ctx) => {
 				return prisma.like.count({ where: { postId: id } })
 			},
 		}),
 		comments: t.field({
 			type: [CommentObject],
-			resolve: async ({ id }, _, { prisma }) => {
+			resolve: async ({ id }, _, _ctx) => {
 				return await prisma.comment.findMany({
 					where: { post: { id } },
 				})
 			},
 		}),
 		totalComments: t.int({
-			resolve: ({ id }, _, { prisma }) =>
+			resolve: ({ id }, _, _ctx) =>
 				prisma.comment.count({ where: { postId: id } }),
 		}),
 	}),
@@ -103,7 +104,7 @@ builder.mutationField('createPost', (t) =>
 			user: true,
 		},
 
-		resolve: async (_, { input }, { prisma, user }) => {
+		resolve: async (_, { input }, { user }) => {
 			/**  Incoming image file  */
 			const media = await input.media
 			const response = await upload(media)
@@ -137,7 +138,7 @@ builder.mutationField('deletePost', (t) =>
 		type: ResultResponse,
 		args: { id: t.arg.string() },
 		authScopes: { user: true },
-		resolve: async (_, { id }, { prisma, user }) => {
+		resolve: async (_, { id }, { user }) => {
 			const photo = await prisma.post.findUnique({
 				where: { id },
 				select: { userId: true },
@@ -173,7 +174,7 @@ builder.mutationField('editPost', (t) =>
 		type: PostResponse,
 		args: { input: t.arg({ type: EditPostInput }) },
 		authScopes: { user: true },
-		resolve: async (_parent, { input }, { prisma, user }) => {
+		resolve: async (_parent, { input }, { user }) => {
 			const oldPost = await prisma.post.findFirst({
 				where: { id: input.id, userId: user!.id },
 				include: {
@@ -204,7 +205,7 @@ builder.queryField('seePost', (t) =>
 	t.field({
 		type: PostResponse,
 		args: { id: t.arg.string() },
-		resolve: async (_, { id }, { prisma }) => {
+		resolve: async (_, { id }, _ctx) => {
 			return await prisma.post.findUnique({
 				where: { id },
 				rejectOnNotFound: true,
