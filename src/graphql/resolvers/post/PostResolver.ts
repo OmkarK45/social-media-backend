@@ -1,17 +1,20 @@
 import { Post } from '@prisma/client'
 import { z } from 'zod'
-import { prisma } from '~/lib/db'
 
-import { upload } from '../../../lib/upload'
-import { builder } from '../../builder'
-import { HashTag, parseHashtags } from '../../utils/hashtags'
+import { connectionForPrisma } from '~/lib/cursor'
+import { prisma } from '~/lib/db'
+import { upload } from '~/lib/upload'
+
+import { builder } from '~/graphql/builder'
+import { HashTag, parseHashtags } from '~/graphql/utils/hashtags'
+
 import { CommentObject } from '../comments/CommentResolver'
 import { HashtagObject } from '../hashtag/HashtagResolver'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
-// upload photo with caption
+import { Context } from '~/graphql/context'
 
-const PostResponse = builder.objectRef<Post>('Post')
+export const PostResponse = builder.objectRef<Post>('Post')
 
 PostResponse.implement({
 	fields: (t) => ({
@@ -64,15 +67,46 @@ PostResponse.implement({
 			},
 		}),
 		likes: t.int({
-			resolve: async ({ id }, _, _ctx) => {
+			resolve: async ({ id }, _args, _ctx) => {
 				return prisma.like.count({ where: { postId: id } })
+			},
+		}),
+		likedBy: t.field({
+			type: [UserObject],
+
+			args: {
+				first: t.arg.int({ required: false }),
+				before: t.arg.string({ required: false }),
+				after: t.arg.string({ required: false }),
+				last: t.arg.int({ required: false }),
+			},
+			resolve: async ({ id }, args, _ctx) => {
+				const usersWhoLiked = await prisma.user.findMany({
+					where: {
+						likes: {
+							some: {
+								postId: id,
+							},
+						},
+					},
+					...connectionForPrisma(args, 'createdAt'),
+				})
+
+				return usersWhoLiked
 			},
 		}),
 		comments: t.field({
 			type: [CommentObject],
-			resolve: async ({ id }, _, _ctx) => {
+			args: {
+				first: t.arg.int({ required: false }),
+				before: t.arg.string({ required: false }),
+				after: t.arg.string({ required: false }),
+				last: t.arg.int({ required: false }),
+			},
+			resolve: async ({ id }, args, _ctx) => {
 				return await prisma.comment.findMany({
 					where: { post: { id } },
+					...connectionForPrisma(args, 'createdAt'),
 				})
 			},
 		}),

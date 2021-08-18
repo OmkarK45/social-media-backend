@@ -46,13 +46,6 @@ input EditProfileInput {
   username: String!
 }
 
-type FeedPosts {
-  caption: String
-  id: String!
-  image: String
-  user: User!
-}
-
 """The `Upload` scalar type represents a file upload."""
 scalar FileUpload
 
@@ -61,15 +54,15 @@ input FollowUserInput {
 }
 
 type FollowerResponse {
-  followers: [User!]!
   totalFollowers: Int!
   totalPages: Int!
+  users: [User!]!
 }
 
 type FollowingResponse {
-  following: [User!]!
   totalFollowing: Int!
   totalPages: Int!
+  users: [User!]!
 }
 
 type Hashtag {
@@ -102,12 +95,13 @@ type Mutation {
 
 type Post {
   caption: String
-  comments: [Comment!]!
+  comments(after: String, before: String, first: Int, last: Int): [Comment!]!
   hashtags: [Hashtag!]!
   id: String!
   image: String
   isLiked: Boolean!
   isMine: Boolean!
+  likedBy(after: String, before: String, first: Int, last: Int): [User!]!
   likes: Int!
   totalComments: Int!
   user: User!
@@ -118,7 +112,7 @@ type ProfileResponse {
 }
 
 type Query {
-  feed(after: String!, before: String!, offset: Int!): [FeedPosts!]!
+  feed(after: String, before: String, first: Int, last: Int): [Post!]!
   health: String!
   me: User!
   seeLikes(id: String!): [User!]!
@@ -161,8 +155,8 @@ type User {
   createdAt: DateTime!
   email: String!
   firstName: String!
-  followers(page: Int!): FollowerResponse!
-  following(page: Int!): FollowingResponse!
+  followers(after: String, before: String, first: Int, last: Int): FollowerResponse!
+  following(after: String, before: String, first: Int, last: Int): FollowingResponse!
   id: ID!
   lastName: String
   updatedAt: DateTime!

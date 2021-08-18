@@ -2,13 +2,14 @@ import { User } from '@prisma/client'
 
 import { builder } from '~/graphql/builder'
 import { EditProfileInput } from '~/graphql/input'
+import { connectionForPrisma, resolveConnection } from '~/lib/cursor'
 import { prisma } from '~/lib/db'
 
 export const UserObject = builder.objectRef<User>('User')
 
 const FollowerResponse = builder.simpleObject('FollowerResponse', {
 	fields: (t) => ({
-		followers: t.field({
+		users: t.field({
 			type: [UserObject],
 		}),
 		totalFollowers: t.int(),
@@ -18,7 +19,7 @@ const FollowerResponse = builder.simpleObject('FollowerResponse', {
 
 const FollowingResponse = builder.simpleObject('FollowingResponse', {
 	fields: (t) => ({
-		following: t.field({
+		users: t.field({
 			type: [UserObject],
 		}),
 		totalFollowing: t.int(),
@@ -37,22 +38,29 @@ UserObject.implement({
 		firstName: t.exposeString('firstName'),
 		createdAt: t.expose('createdAt', { type: 'DateTime' }),
 		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
-		// paginate this to increase efficiency
 		followers: t.field({
 			type: FollowerResponse,
 			authScopes: {
 				user: true,
 			},
 
-			args: { page: t.arg.int() },
+			args: {
+				first: t.arg.int({ required: false }),
+				before: t.arg.string({ required: false }),
+				after: t.arg.string({ required: false }),
+				last: t.arg.int({ required: false }),
+			},
 
-			resolve: async (_, { page }, { user }) => {
+			resolve: async (_, args, { user }) => {
 				const followers = await prisma.user
-					.findUnique({ where: { email: user!.email } })
-					.followers({
-						take: 10,
-						skip: (page - 1) * 10,
+					.findUnique({
+						where: { email: user!.email },
+						select: { hashedPassword: false },
 					})
+					.followers({
+						...connectionForPrisma(args, 'createdAt'),
+					})
+
 				const totalFollowers = await prisma.user.count({
 					where: {
 						following: {
@@ -62,8 +70,9 @@ UserObject.implement({
 						},
 					},
 				})
+
 				return {
-					followers,
+					users: followers,
 					totalFollowers,
 					totalPages: Math.ceil(totalFollowers / 10),
 				}
@@ -72,22 +81,26 @@ UserObject.implement({
 		following: t.field({
 			type: FollowingResponse,
 			authScopes: { user: true },
-			args: { page: t.arg.int() },
-			resolve: async (_, { page }, { user }) => {
+			args: {
+				first: t.arg.int({ required: false }),
+				before: t.arg.string({ required: false }),
+				after: t.arg.string({ required: false }),
+				last: t.arg.int({ required: false }),
+			},
+			resolve: async (_, args, { user }) => {
 				const following = await prisma.user
 					.findUnique({
 						where: { email: user!.email },
 					})
 					.following({
-						take: 10,
-						skip: (page - 1) * 10,
+						...connectionForPrisma(args, 'createdAt'),
 					})
 				const totalFollowing = await prisma.user.count({
 					where: { followers: { some: { username: user!.username } } },
 				})
 
 				return {
-					following,
+					users: following,
 					totalFollowing,
 					totalPages: Math.ceil(totalFollowing / 10),
 				}
