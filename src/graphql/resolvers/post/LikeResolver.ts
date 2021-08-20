@@ -1,6 +1,6 @@
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
-import { connectionResolver } from '~/lib/paginate'
+import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 
@@ -51,22 +51,22 @@ builder.mutationField('toggleLike', (t) =>
 
 // TODO : Paginate this
 builder.queryField('seeLikes', (t) =>
-	t.field({
-		type: [UserObject],
-		args: { id: t.arg.string({}) },
-		resolve: async (_, { id }, { user }) => {
-			const result = await connectionResolver(
-				{ first: 1, last: 0 },
-				prisma.like
-			)
-			console.log(JSON.stringify(result, null, 2))
+	t.connection({
+		type: UserObject,
+		args: { ...t.arg.connectionArgs(), id: t.arg.string({}) },
+		resolve: async (_, { id, after, before, first, last }, { user }) => {
 			const likes = await prisma.like.findMany({
 				where: {
 					postId: id,
 				},
 				select: { user: true },
 			})
-			return likes.map((like) => like.user)
+			const usersWhoLiked = likes.map((like) => like.user)
+
+			return getConnection({
+				args: { after, before, first, last },
+				nodes: usersWhoLiked,
+			})
 		},
 	})
 )

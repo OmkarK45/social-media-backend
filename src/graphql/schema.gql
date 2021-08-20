@@ -92,18 +92,48 @@ type PageInfo {
   startCursor: String
 }
 
-type Post {
+type Post implements Node {
   caption: String
-  comments(after: String, before: String, first: Int, last: Int): [Comment!]!
-  hashtags: [Hashtag!]!
-  id: String!
+  comments(after: ID, before: ID, first: Int, last: Int): PostCommentsConnection!
+  hashtags(after: ID, before: ID, first: Int, last: Int): PostHashtagsConnection!
+  id: ID!
   image: String
   isLiked: Boolean!
   isMine: Boolean!
-  likedBy(after: String, before: String, first: Int, last: Int): [User!]!
+  likedBy(after: ID, before: ID, first: Int, last: Int): PostLikedByConnection!
   likes: Int!
   totalComments: Int!
   user: User!
+}
+
+type PostCommentsConnection {
+  edges: [PostCommentsConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type PostCommentsConnectionEdge {
+  cursor: String!
+  node: Comment!
+}
+
+type PostHashtagsConnection {
+  edges: [PostHashtagsConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type PostHashtagsConnectionEdge {
+  cursor: String!
+  node: Hashtag!
+}
+
+type PostLikedByConnection {
+  edges: [PostLikedByConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type PostLikedByConnectionEdge {
+  cursor: String!
+  node: User!
 }
 
 type ProfileResponse {
@@ -111,14 +141,34 @@ type ProfileResponse {
 }
 
 type Query {
-  feed(after: String, before: String, first: Int, last: Int): [Post!]!
+  feed(after: ID, before: ID, first: Int, last: Int): QueryFeedConnection!
   health: String!
   me: User!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
-  seeLikes(id: String!): [User!]!
+  seeLikes(after: ID, before: ID, first: Int, id: String!, last: Int): QuerySeeLikesConnection!
   seePost(id: String!): Post!
   seeProfile(username: String!): ProfileResponse!
+}
+
+type QueryFeedConnection {
+  edges: [QueryFeedConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QueryFeedConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type QuerySeeLikesConnection {
+  edges: [QuerySeeLikesConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QuerySeeLikesConnectionEdge {
+  cursor: String!
+  node: User!
 }
 
 type ResultResponse {

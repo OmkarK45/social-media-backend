@@ -1,35 +1,24 @@
 import { builder } from '~/graphql/builder'
-import { connectionForPrisma, resolveConnection } from '~/lib/cursor'
 import { prisma } from '~/lib/db'
-import {
-	getConnection,
-	getEdgesFromArray,
-	getPrismaPaginationArgs,
-} from '~/lib/page'
-import { PostResponse } from '../post/PostResolver'
+import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
+import { PostObject } from '../post/PostResolver'
 
 builder.queryField('feed', (t) =>
-	t.field({
-		type: [PostResponse],
-		args: {
-			first: t.arg.int({ required: false }),
-			before: t.arg.string({ required: false }),
-			after: t.arg.string({ required: false }),
-			last: t.arg.int({ required: false }),
-		},
+	t.connection({
+		type: PostObject,
 		authScopes: { user: true },
 		resolve: async (_parent, args, { user }) => {
-			const users = await prisma.post.findMany({
+			const posts = await prisma.post.findMany({
 				where: {
 					OR: [
 						{ user: { followers: { some: { id: user!.id } } } },
 						{ userId: user?.id },
 					],
 				},
-				...connectionForPrisma(args, 'createdAt'),
+				...getPrismaPaginationArgs(args),
 			})
 
-			return users
+			return getConnection({ args, nodes: posts })
 		},
 	})
 )

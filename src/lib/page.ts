@@ -1,3 +1,8 @@
+/**
+ * GraphQL Pagination according to Relay Spec
+ * ref : https://relay.dev/graphql/connections.htm
+ */
+
 import { PageInfoShape } from '@giraphql/plugin-relay'
 import { decode, encode } from 'js-base64'
 

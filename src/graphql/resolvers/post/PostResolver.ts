@@ -1,7 +1,7 @@
-import { Post } from '@prisma/client'
+import { NodeType, Post } from '@prisma/client'
 import { z } from 'zod'
 
-import { connectionForPrisma } from '~/lib/cursor'
+import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { prisma } from '~/lib/db'
 import { upload } from '~/lib/upload'
 
@@ -12,13 +12,14 @@ import { CommentObject } from '../comments/CommentResolver'
 import { HashtagObject } from '../hashtag/HashtagResolver'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
-import { Context } from '~/graphql/context'
 
-export const PostResponse = builder.objectRef<Post>('Post')
+export const PostObject = builder.objectRef<Post>('Post')
 
-PostResponse.implement({
+builder.node(PostObject, {
+	isTypeOf: (value) =>
+		(value as { nodeType?: NodeType }).nodeType === NodeType.Post,
+	id: { resolve: (post) => post.id },
 	fields: (t) => ({
-		id: t.exposeString('id'),
 		caption: t.exposeString('caption', { nullable: true }),
 		image: t.exposeString('image', { nullable: true }),
 		// @todo -> isMine, comments, user
@@ -54,16 +55,17 @@ PostResponse.implement({
 				})
 			},
 		}),
-		hashtags: t.field({
-			type: [HashtagObject],
-			resolve: async ({ id }, _, _ctx) => {
-				return await prisma.hashtag.findMany({
+		hashtags: t.connection({
+			type: HashtagObject,
+			resolve: async ({ id }, args, _ctx) => {
+				const hashtags = await prisma.hashtag.findMany({
 					where: {
 						posts: {
 							some: { id },
 						},
 					},
 				})
+				return getConnection({ args, nodes: hashtags })
 			},
 		}),
 		likes: t.int({
@@ -71,15 +73,8 @@ PostResponse.implement({
 				return prisma.like.count({ where: { postId: id } })
 			},
 		}),
-		likedBy: t.field({
-			type: [UserObject],
-
-			args: {
-				first: t.arg.int({ required: false }),
-				before: t.arg.string({ required: false }),
-				after: t.arg.string({ required: false }),
-				last: t.arg.int({ required: false }),
-			},
+		likedBy: t.connection({
+			type: UserObject,
 			resolve: async ({ id }, args, _ctx) => {
 				const usersWhoLiked = await prisma.user.findMany({
 					where: {
@@ -89,25 +84,21 @@ PostResponse.implement({
 							},
 						},
 					},
-					...connectionForPrisma(args, 'createdAt'),
+					...getPrismaPaginationArgs(args),
 				})
 
-				return usersWhoLiked
+				return getConnection({ args, nodes: usersWhoLiked })
 			},
 		}),
-		comments: t.field({
-			type: [CommentObject],
-			args: {
-				first: t.arg.int({ required: false }),
-				before: t.arg.string({ required: false }),
-				after: t.arg.string({ required: false }),
-				last: t.arg.int({ required: false }),
-			},
+		comments: t.connection({
+			type: CommentObject,
+
 			resolve: async ({ id }, args, _ctx) => {
-				return await prisma.comment.findMany({
+				const comments = await prisma.comment.findMany({
 					where: { post: { id } },
-					...connectionForPrisma(args, 'createdAt'),
+					...getPrismaPaginationArgs(args),
 				})
+				return getConnection({ args, nodes: comments })
 			},
 		}),
 		totalComments: t.int({
@@ -130,7 +121,7 @@ const CreatePostInput = builder.inputType('CreatePostInput', {
 /** Creates a new Post */
 builder.mutationField('createPost', (t) =>
 	t.field({
-		type: PostResponse,
+		type: PostObject,
 
 		args: { input: t.arg({ type: CreatePostInput }) },
 
@@ -205,7 +196,7 @@ const EditPostInput = builder.inputType('EditPostInput', {
 /** Edit Post */
 builder.mutationField('editPost', (t) =>
 	t.field({
-		type: PostResponse,
+		type: PostObject,
 		args: { input: t.arg({ type: EditPostInput }) },
 		authScopes: { user: true },
 		resolve: async (_parent, { input }, { user }) => {
@@ -237,7 +228,7 @@ builder.mutationField('editPost', (t) =>
 // see individual post
 builder.queryField('seePost', (t) =>
 	t.field({
-		type: PostResponse,
+		type: PostObject,
 		args: { id: t.arg.string() },
 		resolve: async (_, { id }, _ctx) => {
 			return await prisma.post.findUnique({
