@@ -1,6 +1,11 @@
 import { builder } from '~/graphql/builder'
 import { connectionForPrisma, resolveConnection } from '~/lib/cursor'
 import { prisma } from '~/lib/db'
+import {
+	getConnection,
+	getEdgesFromArray,
+	getPrismaPaginationArgs,
+} from '~/lib/page'
 import { PostResponse } from '../post/PostResolver'
 
 builder.queryField('feed', (t) =>

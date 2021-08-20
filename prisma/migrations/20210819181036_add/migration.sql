@@ -1,12 +1,36 @@
--- AlterTable
-ALTER TABLE "User" ADD COLUMN     "avatar" TEXT,
-ADD COLUMN     "bio" TEXT;
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "lastName" TEXT,
+    "username" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "hashedPassword" BYTEA NOT NULL,
+    "bio" TEXT,
+    "avatar" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "expiresAt" TIMESTAMP(3),
+    "userId" TEXT NOT NULL,
+
+    PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Post" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "body" TEXT,
+    "image" TEXT,
+    "caption" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -47,6 +71,25 @@ CREATE TABLE "Comment" (
 );
 
 -- CreateTable
+CREATE TABLE "Foo" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+
+    PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Bar" (
+    "id" SERIAL NOT NULL,
+    "fooId" INTEGER NOT NULL,
+    "text" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_FollowRelation" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
@@ -57,6 +100,12 @@ CREATE TABLE "_HashtagToPost" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User.username_unique" ON "User"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User.email_unique" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Like.postId_userId_unique" ON "Like"("postId", "userId");
@@ -77,6 +126,9 @@ CREATE UNIQUE INDEX "_HashtagToPost_AB_unique" ON "_HashtagToPost"("A", "B");
 CREATE INDEX "_HashtagToPost_B_index" ON "_HashtagToPost"("B");
 
 -- AddForeignKey
+ALTER TABLE "Session" ADD FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Post" ADD FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -90,6 +142,9 @@ ALTER TABLE "Comment" ADD FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELE
 
 -- AddForeignKey
 ALTER TABLE "Comment" ADD FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Bar" ADD FOREIGN KEY ("fooId") REFERENCES "Foo"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_FollowRelation" ADD FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

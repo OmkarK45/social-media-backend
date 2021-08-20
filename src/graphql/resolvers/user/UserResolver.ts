@@ -1,35 +1,17 @@
-import { User } from '@prisma/client'
+import { NodeType, User } from '@prisma/client'
 
 import { builder } from '~/graphql/builder'
 import { EditProfileInput } from '~/graphql/input'
-import { connectionForPrisma, resolveConnection } from '~/lib/cursor'
 import { prisma } from '~/lib/db'
+import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 
 export const UserObject = builder.objectRef<User>('User')
 
-const FollowerResponse = builder.simpleObject('FollowerResponse', {
+builder.node(UserObject, {
+	isTypeOf: (value) =>
+		(value as { nodeType?: NodeType }).nodeType === NodeType.User,
+	id: { resolve: (user) => user.id },
 	fields: (t) => ({
-		users: t.field({
-			type: [UserObject],
-		}),
-		totalFollowers: t.int(),
-		totalPages: t.int(),
-	}),
-})
-
-const FollowingResponse = builder.simpleObject('FollowingResponse', {
-	fields: (t) => ({
-		users: t.field({
-			type: [UserObject],
-		}),
-		totalFollowing: t.int(),
-		totalPages: t.int(),
-	}),
-})
-
-UserObject.implement({
-	fields: (t) => ({
-		id: t.exposeID('id'),
 		bio: t.exposeString('bio', { nullable: true }),
 		email: t.exposeString('email'),
 		avatar: t.exposeString('avatar', { nullable: true }),
@@ -38,19 +20,11 @@ UserObject.implement({
 		firstName: t.exposeString('firstName'),
 		createdAt: t.expose('createdAt', { type: 'DateTime' }),
 		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
-		followers: t.field({
-			type: FollowerResponse,
+		followers: t.connection({
+			type: UserObject,
 			authScopes: {
 				user: true,
 			},
-
-			args: {
-				first: t.arg.int({ required: false }),
-				before: t.arg.string({ required: false }),
-				after: t.arg.string({ required: false }),
-				last: t.arg.int({ required: false }),
-			},
-
 			resolve: async (_, args, { user }) => {
 				const followers = await prisma.user
 					.findUnique({
@@ -58,52 +32,26 @@ UserObject.implement({
 						select: { hashedPassword: false },
 					})
 					.followers({
-						...connectionForPrisma(args, 'createdAt'),
+						...getPrismaPaginationArgs(args),
 					})
 
-				const totalFollowers = await prisma.user.count({
-					where: {
-						following: {
-							some: {
-								username: user!.username,
-							},
-						},
-					},
-				})
-
-				return {
-					users: followers,
-					totalFollowers,
-					totalPages: Math.ceil(totalFollowers / 10),
-				}
+				return getConnection({ args, nodes: followers })
 			},
 		}),
-		following: t.field({
-			type: FollowingResponse,
+		following: t.connection({
+			type: UserObject,
 			authScopes: { user: true },
-			args: {
-				first: t.arg.int({ required: false }),
-				before: t.arg.string({ required: false }),
-				after: t.arg.string({ required: false }),
-				last: t.arg.int({ required: false }),
-			},
 			resolve: async (_, args, { user }) => {
 				const following = await prisma.user
 					.findUnique({
 						where: { email: user!.email },
+						select: { hashedPassword: false },
 					})
 					.following({
-						...connectionForPrisma(args, 'createdAt'),
+						...getPrismaPaginationArgs(args),
 					})
-				const totalFollowing = await prisma.user.count({
-					where: { followers: { some: { username: user!.username } } },
-				})
 
-				return {
-					users: following,
-					totalFollowing,
-					totalPages: Math.ceil(totalFollowing / 10),
-				}
+				return getConnection({ args, nodes: following })
 			},
 		}),
 	}),

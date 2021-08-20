@@ -61,6 +61,11 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
+"@devoxa/prisma-relay-cursor-connection@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@devoxa/prisma-relay-cursor-connection/-/prisma-relay-cursor-connection-2.0.2.tgz#01d2d713293a4546b38935eb56c36360ccb3c4ba"
+  integrity sha512-1Q/y7R7OxWtx5lpy5nn4ywSK5DGDGablOhX3ys2mXGidHshTaBMGv9semV3wPmaCBxvEtazAMgNuvkH0Kx+Yjg==
+
 "@giraphql/core@^2.10.2":
   version "2.14.0"
   resolved "https://registry.yarnpkg.com/@giraphql/core/-/core-2.14.0.tgz#1914b0eb7c7c1c438f2f13d4ab884e6c51d4eef3"
@@ -1834,6 +1839,11 @@ joi@*:
     "@sideway/formula" "^3.0.0"
     "@sideway/pinpoint" "^2.0.0"
 
+js-base64@^3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.6.1.tgz#555aae398b74694b4037af1f8a5a6209d170efbe"
+  integrity sha512-Frdq2+tRRGLQUIQOgsIGSCd1VePCS2fsddTG5dTCqR0JHgltXWfsxnY0gIXPoMeRmdom6Oyq+UMOFg5suduOjQ==
+
 js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
@@ -2414,7 +2424,7 @@ prisma-dbml-generator@^0.6.0:
     "@prisma/generator-helper" "^2.20.1"
     "@prisma/sdk" "^2.20.1"
 
-prisma@^2.27.0:
+prisma@^2.29.1:
   version "2.29.1"
   resolved "https://registry.yarnpkg.com/prisma/-/prisma-2.29.1.tgz#7845f55c7f09955b01f973c6a4b1f330cb212e7d"
   integrity sha512-fRGh90+z0m3Jw3D6KBE6wyVCRR0w6M6QD93jh+em8IOQycmC48zB8hho8zeri3J9//C0k8fkDeQrRLJUosXROw==

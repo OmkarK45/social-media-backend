@@ -53,18 +53,6 @@ input FollowUserInput {
   username: String!
 }
 
-type FollowerResponse {
-  totalFollowers: Int!
-  totalPages: Int!
-  users: [User!]!
-}
-
-type FollowingResponse {
-  totalFollowing: Int!
-  totalPages: Int!
-  users: [User!]!
-}
-
 type Hashtag {
   hashtag: String!
   id: ID!
@@ -93,6 +81,17 @@ type Mutation {
   unfollowUser(input: FollowUserInput!): User!
 }
 
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
 type Post {
   caption: String
   comments(after: String, before: String, first: Int, last: Int): [Comment!]!
@@ -115,6 +114,8 @@ type Query {
   feed(after: String, before: String, first: Int, last: Int): [Post!]!
   health: String!
   me: User!
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
   seeLikes(id: String!): [User!]!
   seePost(id: String!): Post!
   seeProfile(username: String!): ProfileResponse!
@@ -149,16 +150,36 @@ input SignUpInput {
   username: String!
 }
 
-type User {
+type User implements Node {
   avatar: String
   bio: String
   createdAt: DateTime!
   email: String!
   firstName: String!
-  followers(after: String, before: String, first: Int, last: Int): FollowerResponse!
-  following(after: String, before: String, first: Int, last: Int): FollowingResponse!
+  followers(after: ID, before: ID, first: Int, last: Int): UserFollowersConnection!
+  following(after: ID, before: ID, first: Int, last: Int): UserFollowingConnection!
   id: ID!
   lastName: String
   updatedAt: DateTime!
   username: String!
+}
+
+type UserFollowersConnection {
+  edges: [UserFollowersConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type UserFollowersConnectionEdge {
+  cursor: String!
+  node: User!
+}
+
+type UserFollowingConnection {
+  edges: [UserFollowingConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type UserFollowingConnectionEdge {
+  cursor: String!
+  node: User!
 }
