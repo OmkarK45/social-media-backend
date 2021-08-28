@@ -22,7 +22,7 @@ model User {
   lastName       String?
   username       String    @unique
   email          String    @unique
-  hashedPassword Bytes
+  hashedPassword String
   bio            String?
   avatar         String? // we would probably want this to be from cloudinary 
   posts          Post[]

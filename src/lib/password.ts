@@ -1,21 +1,11 @@
-import SecurePassword from 'secure-password'
-
-const securePassword = new SecurePassword()
+import bcrypt from 'bcryptjs'
 
 export async function hashPassword(password: string) {
-	return await securePassword.hash(Buffer.from(password))
+	const salt = await bcrypt.genSalt(10)
+
+	return await bcrypt.hash(password, salt)
 }
 
-export async function verifyPassword(hashedPassword: Buffer, password: string) {
-	try {
-		return await securePassword.verify(Buffer.from(password), hashedPassword)
-	} catch (error) {
-		return SecurePassword.INVALID
-	}
-}
-
-export function isValidPassword(validity: symbol) {
-	return [SecurePassword.VALID, SecurePassword.VALID_NEEDS_REHASH].includes(
-		validity
-	)
+export async function verifyPassword(hashedPassword: string, password: string) {
+	return await bcrypt.compare(password, hashedPassword)
 }

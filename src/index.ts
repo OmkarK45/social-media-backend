@@ -4,15 +4,18 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { graphqlUploadExpress } from 'graphql-upload'
 import { graphiqlMiddleware } from 'graphiql-middleware'
+import { ironSession, Session } from 'next-iron-session'
 
 import { config } from './lib/config'
 import { apolloServer } from './app'
+import { sessionOption } from './lib/session'
 
 dotEnv.config({
 	path: '../.env',
 })
 const app = express()
 
+app.use(ironSession(sessionOption))
 app.use(
 	'/graphiql',
 	graphiqlMiddleware(

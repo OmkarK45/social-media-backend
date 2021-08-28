@@ -20,6 +20,7 @@ const configSchema = Joi.object({
 const { APP_ENV = 'development' } = process.env
 
 export const IS_PRODUCTION = APP_ENV === 'production'
+
 export const IS_DEVELOPMENT = APP_ENV === 'development'
 
 export function loadConfig(schema: Joi.ObjectSchema, envs: NodeJS.ProcessEnv) {

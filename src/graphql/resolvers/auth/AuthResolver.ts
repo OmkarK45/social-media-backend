@@ -1,16 +1,15 @@
 import { Session } from '@prisma/client'
 
 import { builder } from '~/graphql/builder'
-import { JwtPayload } from '~/graphql/context'
 import { UserObject } from '../user/UserResolver'
 import { ChangePasswordInput, SignInInput, SignUpInput } from '~/graphql/input'
 
 import { login } from '~/lib/auth'
-import { createToken } from '~/lib/jwt'
-import { hashPassword, isValidPassword, verifyPassword } from '~/lib/password'
+import { hashPassword, verifyPassword } from '~/lib/password'
 
 import { ResultResponse } from '../ResultResponse'
 import { prisma } from '~/lib/db'
+import { createSession, removeSession } from '~/lib/session'
 
 export const SessionObject = builder.objectRef<Session>('Session')
 
@@ -36,7 +35,7 @@ builder.mutationField('signUp', (t) =>
 	t.field({
 		type: AuthResponseObject,
 		args: { input: t.arg({ type: SignUpInput, required: true }) },
-		resolve: async (_, { input }, { res }) => {
+		resolve: async (_, { input }, { req }) => {
 			const existingUser = await prisma.user.findFirst({
 				where: {
 					OR: [{ email: input.email }, { username: input.username }],
@@ -58,23 +57,7 @@ builder.mutationField('signUp', (t) =>
 				},
 			})
 
-			const session = await prisma.session.create({
-				data: {
-					userId: newUser.id,
-				},
-			})
-
-			const payload: JwtPayload = {
-				email: input.email,
-				sessionId: session.id,
-				userId: newUser.id,
-			}
-
-			const token = createToken(payload)
-
-			res.cookie('session', token, {
-				httpOnly: true,
-			})
+			await createSession(req, newUser)
 
 			return { success: true, user: newUser }
 		},
@@ -87,25 +70,10 @@ builder.mutationField('signIn', (t) =>
 		args: {
 			input: t.arg({ type: SignInInput, required: true }),
 		},
-		resolve: async (_, { input }, { res }) => {
+		resolve: async (_, { input }, { req, res }) => {
 			const user = await login(input.email, input.password)
-			const session = await prisma.session.create({
-				data: {
-					userId: user.id,
-				},
-			})
 
-			const payload: JwtPayload = {
-				email: input.email,
-				sessionId: session.id,
-				userId: user.id,
-			}
-
-			const token = createToken(payload)
-
-			res.cookie('session', token, {
-				httpOnly: true,
-			})
+			await createSession(req, user)
 
 			return {
 				success: true,
@@ -121,9 +89,9 @@ builder.mutationField('logout', (t) =>
 		authScopes: {
 			user: true,
 		},
-		resolve: async (_, _args, { res, session }) => {
-			await prisma.session.delete({ where: { id: session!.id } })
-			res.clearCookie('session')
+		resolve: async (_, _args, { req, session }) => {
+			await removeSession(req, session!)
+
 			return {
 				success: true,
 			}
@@ -144,7 +112,7 @@ builder.mutationField('changePassword', (t) =>
 				input.oldPassword
 			)
 
-			if (!isValidPassword(isValid)) {
+			if (!isValid) {
 				throw new Error('The old password provided is incorrect.')
 			}
 

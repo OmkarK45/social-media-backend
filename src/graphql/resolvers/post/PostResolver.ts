@@ -58,13 +58,9 @@ builder.node(PostObject, {
 		hashtags: t.connection({
 			type: HashtagObject,
 			resolve: async ({ id }, args, _ctx) => {
-				const hashtags = await prisma.hashtag.findMany({
-					where: {
-						posts: {
-							some: { id },
-						},
-					},
-				})
+				const hashtags = await prisma.post
+					.findUnique({ where: { id } })
+					.hashtags()
 				return getConnection({ args, nodes: hashtags })
 			},
 		}),
@@ -94,10 +90,13 @@ builder.node(PostObject, {
 			type: CommentObject,
 
 			resolve: async ({ id }, args, _ctx) => {
-				const comments = await prisma.comment.findMany({
-					where: { post: { id } },
-					...getPrismaPaginationArgs(args),
-				})
+				const comments = await prisma.post
+					.findUnique({
+						where: { id },
+					})
+					.comments({
+						...getPrismaPaginationArgs(args),
+					})
 				return getConnection({ args, nodes: comments })
 			},
 		}),
@@ -124,10 +123,6 @@ builder.mutationField('createPost', (t) =>
 		type: PostObject,
 
 		args: { input: t.arg({ type: CreatePostInput }) },
-
-		authScopes: {
-			user: true,
-		},
 
 		resolve: async (_, { input }, { user }) => {
 			/**  Incoming image file  */
