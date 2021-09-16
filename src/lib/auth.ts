@@ -4,7 +4,7 @@ import { User } from '@prisma/client'
 import { AuthenticationError, ValidationError } from 'apollo-server-errors'
 
 import { prisma } from './db'
-import { hashPassword, verifyPassword } from './password'
+import { verifyPassword } from './password'
 
 export async function login(email: string, password: string): Promise<User> {
 	const user = await prisma.user.findFirst({
@@ -22,20 +22,11 @@ export async function login(email: string, password: string): Promise<User> {
 		)
 	}
 
-	const status = await verifyPassword(user.hashedPassword, password)
-
-	switch (status) {
-		case SecurePassword.VALID:
-			break
-		case SecurePassword.VALID_NEEDS_REHASH:
-			const newHash = await hashPassword(password)
-			await prisma.user.update({
-				where: { id: user.id },
-				data: { hashedPassword: newHash },
-			})
-			break
-		case SecurePassword.INVALID:
-			throw new ValidationError('Password is incorrect.')
+	const correctPassword = await verifyPassword(user.hashedPassword, password)
+	console.log(correctPassword)
+	if (!correctPassword) {
+		throw new AuthenticationError('The password provided is incorrect.')
 	}
+
 	return user
 }

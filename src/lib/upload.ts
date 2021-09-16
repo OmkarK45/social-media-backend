@@ -15,6 +15,8 @@ cloudinary.config({
 })
 
 export async function upload(file: FileUpload): Promise<UploadApiResponse> {
+	const newFile = await file
+
 	return new Promise((resolve, reject) => {
 		const uploadStream = cloudinary.uploader.upload_stream(
 			{
@@ -29,6 +31,6 @@ export async function upload(file: FileUpload): Promise<UploadApiResponse> {
 			}
 		)
 
-		file.createReadStream().pipe(uploadStream)
+		newFile.createReadStream().pipe(uploadStream)
 	})
 }

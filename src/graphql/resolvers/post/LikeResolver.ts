@@ -1,3 +1,4 @@
+import { decodeGlobalID } from '@giraphql/plugin-relay'
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
 import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
@@ -12,7 +13,7 @@ builder.mutationField('toggleLike', (t) =>
 			const like = await prisma.like.findUnique({
 				where: {
 					postId_userId: {
-						postId: id,
+						postId: decodeGlobalID(id).id,
 						userId: user!.id,
 					},
 				},
@@ -21,7 +22,7 @@ builder.mutationField('toggleLike', (t) =>
 				await prisma.like.delete({
 					where: {
 						postId_userId: {
-							postId: id,
+							postId: decodeGlobalID(id).id,
 							userId: user!.id,
 						},
 					},
@@ -36,7 +37,7 @@ builder.mutationField('toggleLike', (t) =>
 						},
 						post: {
 							connect: {
-								id,
+								id: decodeGlobalID(id).id,
 							},
 						},
 					},

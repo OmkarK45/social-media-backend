@@ -25,6 +25,7 @@ model User {
   hashedPassword String
   bio            String?
   avatar         String? // we would probably want this to be from cloudinary 
+  coverImage     String?
   posts          Post[]
   likes          Like[]
   comments       Comment[]
@@ -50,7 +51,9 @@ model Post {
   user      User      @relation(fields: [userId], references: [id])
   userId    String
   image     String?
+  blurHash  String?
   caption   String?
+  gifLink   String?
   likes     Like[]
   hashtags  Hashtag[]
   createdAt DateTime  @default(now())

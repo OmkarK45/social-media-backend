@@ -6,6 +6,7 @@ import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 import { Context } from '~/graphql/context'
 import { prisma } from '~/lib/db'
+import { decodeGlobalID } from '@giraphql/plugin-relay'
 
 export const CommentObject = builder.objectRef<Comment>('Comment')
 
@@ -13,6 +14,8 @@ CommentObject.implement({
 	fields: (t) => ({
 		body: t.exposeString('body'),
 		id: t.exposeString('id'),
+		createdAt: t.expose('createdAt', { type: 'DateTime' }),
+		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
 		// todo -> look into this
 		user: t.loadable({
 			type: UserObject,
@@ -54,7 +57,7 @@ builder.mutationField('createComment', (t) =>
 			const newComment = await prisma.comment.create({
 				data: {
 					body: input.body,
-					post: { connect: { id: input.postId } },
+					post: { connect: { id: decodeGlobalID(input.postId).id } },
 					user: { connect: { id: user!.id } },
 				},
 			})

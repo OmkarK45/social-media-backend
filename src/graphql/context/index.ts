@@ -23,7 +23,6 @@ export async function makeGraphQLContext({
 		loader: Loader,
 	}
 	const session = await connectSession({ req, res })
-	console.log(session)
 	if (session) {
 		ctx.user = session.user
 		ctx.session = session

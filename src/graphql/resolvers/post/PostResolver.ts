@@ -1,5 +1,6 @@
 import { NodeType, Post } from '@prisma/client'
 import { z } from 'zod'
+import { getPlaiceholder } from 'plaiceholder'
 
 import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { prisma } from '~/lib/db'
@@ -12,6 +13,8 @@ import { CommentObject } from '../comments/CommentResolver'
 import { HashtagObject } from '../hashtag/HashtagResolver'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
+import { getHash } from '~/lib/blurhash'
+import { decodeGlobalID } from '@giraphql/plugin-relay'
 
 export const PostObject = builder.objectRef<Post>('Post')
 
@@ -22,7 +25,10 @@ builder.node(PostObject, {
 	fields: (t) => ({
 		caption: t.exposeString('caption', { nullable: true }),
 		image: t.exposeString('image', { nullable: true }),
-		// @todo -> isMine, comments, user
+		gifImage: t.exposeString('gifLink', { nullable: true }),
+		blurHash: t.exposeString('blurHash', { nullable: true }),
+		createdAt: t.expose('createdAt', { type: 'DateTime' }),
+		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
 		isMine: t.boolean({
 			resolve: async ({ userId }, _, { user }) => {
 				if (!user) {
@@ -107,13 +113,15 @@ builder.node(PostObject, {
 	}),
 })
 
+// although both are optional here, we check it on the frontend and make sure one of them is required
 const CreatePostInput = builder.inputType('CreatePostInput', {
 	fields: (t) => ({
 		caption: t.field({
 			type: 'String',
 			validate: { schema: z.string().min(1).max(256) },
 		}),
-		media: t.field({ type: 'FileUpload' }),
+		media: t.field({ type: 'FileUpload', required: false }),
+		gifLink: t.string({ required: false }),
 	}),
 })
 
@@ -126,9 +134,18 @@ builder.mutationField('createPost', (t) =>
 
 		resolve: async (_, { input }, { user }) => {
 			/**  Incoming image file  */
-			const media = await input.media
-			const response = await upload(media)
+			let media
+			let response
+			let blurHash
 
+			if (input.media && input.media !== null) {
+				media = await input.media
+				response = await upload(media)
+				blurHash = await getHash(response.url)
+			}
+			/** Upload to cloudinary */
+
+			/** logic for placeholder */
 			/** Parse hashtags from caption */
 			let hashTags: Array<HashTag> = []
 
@@ -139,7 +156,9 @@ builder.mutationField('createPost', (t) =>
 			return await prisma.post.create({
 				data: {
 					caption: input.caption,
-					image: response.url,
+					image: response ? response.url : null,
+					blurHash: blurHash ? blurHash.hash : null,
+					gifLink: input.gifLink,
 					user: { connect: { id: user!.id } },
 					...(hashTags.length > 0 && {
 						hashtags: {
@@ -185,6 +204,7 @@ const EditPostInput = builder.inputType('EditPostInput', {
 		// TODO -> better validate here
 		id: t.string(),
 		caption: t.string(),
+		gifLink: t.string({ required: false }),
 	}),
 })
 
@@ -210,6 +230,7 @@ builder.mutationField('editPost', (t) =>
 				data: {
 					id: input.id,
 					caption: input.caption,
+					gifLink: input.gifLink,
 					hashtags: {
 						disconnect: oldPost.hashtags,
 						connectOrCreate: parseHashtags(input.caption),
@@ -226,10 +247,54 @@ builder.queryField('seePost', (t) =>
 		type: PostObject,
 		args: { id: t.arg.string() },
 		resolve: async (_, { id }, _ctx) => {
+			const decodedID = decodeGlobalID(id)
 			return await prisma.post.findUnique({
-				where: { id },
+				where: { id: decodedID.id },
 				rejectOnNotFound: true,
 			})
 		},
 	})
 )
+
+builder.queryField('postsByHashtag', (t) =>
+	t.connection({
+		type: PostObject,
+		args: { hashtag: t.arg.string(), ...t.arg.connectionArgs() },
+		resolve: async (_, { hashtag, first, last, after, before }, _ctx) => {
+			const posts = await prisma.post.findMany({
+				where: {
+					hashtags: {
+						some: {
+							hashtag: {
+								equals: hashtag.toLowerCase(),
+							},
+						},
+					},
+				},
+			})
+			return getConnection({
+				args: { first, last, after, before },
+				nodes: posts,
+			})
+		},
+	})
+)
+
+// TODO : come up with logic
+// builder.queryField('popularPosts', (t) =>
+// 	t.connection({
+// 		type: PostObject,
+// 		args: { orderBy: t.arg.string() },
+// 		resolve: async (_, { orderBy }, { user }) => {
+// 			const popularPosts = await prisma.post.findMany({
+// 				where : { userId : { not : user?.id}},
+// 				include : {
+// 					likes : true
+// 				},
+// 				orderBy : {
+
+// 				}
+// 			})
+// 		},
+// 	})
+// )

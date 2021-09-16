@@ -10,6 +10,7 @@ import { hashPassword, verifyPassword } from '~/lib/password'
 import { ResultResponse } from '../ResultResponse'
 import { prisma } from '~/lib/db'
 import { createSession, removeSession } from '~/lib/session'
+import { getAvatar } from '~/graphql/utils/avatar'
 
 export const SessionObject = builder.objectRef<Session>('Session')
 
@@ -19,14 +20,29 @@ SessionObject.implement({
 		userId: t.exposeID('userId'),
 		createdAt: t.expose('createdAt', { type: 'DateTime' }),
 		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
+		expiresAt: t.expose('expiresAt', { type: 'DateTime', nullable: true }),
 	}),
 })
+
+builder.queryField('sessionById', (t) =>
+	t.field({
+		type: SessionObject,
+		// TODO look into this
+		args: { id: t.arg.string() },
+		resolve: async (_, { id }, { session, user }) => {
+			return session!
+		},
+	})
+)
 
 const AuthResponseObject = builder.simpleObject('AuthResponse', {
 	fields: (t) => ({
 		success: t.boolean(),
 		user: t.field({
 			type: UserObject,
+		}),
+		session: t.field({
+			type: SessionObject,
 		}),
 	}),
 })
@@ -54,12 +70,13 @@ builder.mutationField('signUp', (t) =>
 					firstName: input.firstName,
 					lastName: input.lastName,
 					hashedPassword: await hashPassword(input.password),
+					avatar: getAvatar(),
 				},
 			})
 
-			await createSession(req, newUser)
+			const session = await createSession(req, newUser)
 
-			return { success: true, user: newUser }
+			return { success: true, user: newUser, session }
 		},
 	})
 )
@@ -73,11 +90,12 @@ builder.mutationField('signIn', (t) =>
 		resolve: async (_, { input }, { req, res }) => {
 			const user = await login(input.email, input.password)
 
-			await createSession(req, user)
+			const session = await createSession(req, user)
 
 			return {
 				success: true,
 				user,
+				session,
 			}
 		},
 	})

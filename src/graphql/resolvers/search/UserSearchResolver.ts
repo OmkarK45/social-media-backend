@@ -1,5 +1,6 @@
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
+import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { UserObject } from '../user/UserResolver'
 
 const SearchResponse = builder.simpleObject('SearchResponse', {
@@ -10,26 +11,23 @@ const SearchResponse = builder.simpleObject('SearchResponse', {
 })
 
 builder.mutationField('searchUser', (t) =>
-	t.field({
-		type: SearchResponse,
-		args: { keyword: t.arg.string() },
-		resolve: async (_, { keyword }, _ctx) => {
-			const usersWithCount = await prisma.$transaction([
-				prisma.user.count({
-					where: { username: { startsWith: keyword.toLowerCase() } },
-				}),
-				prisma.user.findMany({
-					where: {
-						username: {
-							startsWith: keyword.toLowerCase(),
-						},
+	t.connection({
+		type: UserObject,
+		args: { keyword: t.arg.string(), ...t.arg.connectionArgs() },
+		resolve: async (_, { keyword, first, last, after, before }, _ctx) => {
+			const users = await prisma.user.findMany({
+				where: {
+					username: {
+						startsWith: keyword.toLowerCase(),
 					},
-				}),
-			])
-			return {
-				users: usersWithCount[1],
-				total: usersWithCount[0],
-			}
+				},
+				...getPrismaPaginationArgs({ after, before, first, last }),
+			})
+
+			return getConnection({
+				args: { first, last, after, before },
+				nodes: users,
+			})
 		},
 	})
 )

@@ -1,4 +1,5 @@
 type AuthResponse {
+  session: Session!
   success: Boolean!
   user: User!
 }
@@ -10,8 +11,10 @@ input ChangePasswordInput {
 
 type Comment {
   body: String!
+  createdAt: DateTime!
   id: String!
   isMine: Boolean!
+  updatedAt: DateTime!
   user: User!
 }
 
@@ -22,7 +25,8 @@ input CreateCommentInput {
 
 input CreatePostInput {
   caption: String!
-  media: FileUpload!
+  gifLink: String
+  media: FileUpload
 }
 
 scalar DateTime
@@ -35,15 +39,17 @@ input EditCommentInput {
 
 input EditPostInput {
   caption: String!
+  gifLink: String
   id: String!
 }
 
 input EditProfileInput {
-  avatar: String
+  avatar: FileUpload
   bio: String
-  firstName: String!
+  coverImage: FileUpload
+  firstName: String
   lastName: String
-  username: String!
+  username: String
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -74,11 +80,21 @@ type Mutation {
   editProfile(input: EditProfileInput!): User!
   followUser(input: FollowUserInput!): User!
   logout: ResultResponse!
-  searchUser(keyword: String!): SearchResponse!
+  searchUser(after: ID, before: ID, first: Int, keyword: String!, last: Int): MutationSearchUserConnection!
   signIn(input: SignInInput!): AuthResponse!
   signUp(input: SignUpInput!): AuthResponse!
   toggleLike(id: String!): ResultResponse!
   unfollowUser(input: FollowUserInput!): User!
+}
+
+type MutationSearchUserConnection {
+  edges: [MutationSearchUserConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type MutationSearchUserConnectionEdge {
+  cursor: String!
+  node: User!
 }
 
 interface Node {
@@ -93,8 +109,11 @@ type PageInfo {
 }
 
 type Post implements Node {
+  blurHash: String
   caption: String
   comments(after: ID, before: ID, first: Int, last: Int): PostCommentsConnection!
+  createdAt: DateTime!
+  gifImage: String
   hashtags(after: ID, before: ID, first: Int, last: Int): PostHashtagsConnection!
   id: ID!
   image: String
@@ -103,6 +122,7 @@ type Post implements Node {
   likedBy(after: ID, before: ID, first: Int, last: Int): PostLikedByConnection!
   likes: Int!
   totalComments: Int!
+  updatedAt: DateTime!
   user: User!
 }
 
@@ -146,9 +166,11 @@ type Query {
   me: User!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+  postsByHashtag(after: ID, before: ID, first: Int, hashtag: String!, last: Int): QueryPostsByHashtagConnection!
   seeLikes(after: ID, before: ID, first: Int, id: String!, last: Int): QuerySeeLikesConnection!
   seePost(id: String!): Post!
   seeProfile(username: String!): ProfileResponse!
+  sessionById(id: String!): Session!
 }
 
 type QueryFeedConnection {
@@ -157,6 +179,16 @@ type QueryFeedConnection {
 }
 
 type QueryFeedConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type QueryPostsByHashtagConnection {
+  edges: [QueryPostsByHashtagConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QueryPostsByHashtagConnectionEdge {
   cursor: String!
   node: Post!
 }
@@ -182,6 +214,7 @@ type SearchResponse {
 
 type Session {
   createdAt: DateTime!
+  expiresAt: DateTime
   id: ID!
   updatedAt: DateTime!
   userId: ID!
@@ -203,6 +236,7 @@ input SignUpInput {
 type User implements Node {
   avatar: String
   bio: String
+  coverImage: String
   createdAt: DateTime!
   email: String!
   firstName: String!
