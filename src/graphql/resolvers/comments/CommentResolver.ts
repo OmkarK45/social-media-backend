@@ -47,10 +47,17 @@ const CreateCommentInput = builder.inputType('CreateCommentInput', {
 	}),
 })
 
+const CreateCommentObject = builder.simpleObject('CreateCommentObject', {
+	fields: (t) => ({
+		id: t.string(),
+		body: t.string(),
+	}),
+})
+
 /** Create Comment Mutation */
 builder.mutationField('createComment', (t) =>
 	t.field({
-		type: ResultResponse,
+		type: CreateCommentObject,
 		args: { input: t.arg({ type: CreateCommentInput }) },
 		authScopes: { user: true },
 		resolve: async (_parent, { input }, { user }) => {
@@ -64,7 +71,7 @@ builder.mutationField('createComment', (t) =>
 			/**
 			 * TODO: customize this Result response to include id as well
 			 * */
-			return { success: true, id: newComment.id }
+			return { id: newComment.id, body: newComment.body }
 		},
 	})
 )

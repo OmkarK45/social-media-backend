@@ -102,6 +102,9 @@ builder.node(PostObject, {
 					})
 					.comments({
 						...getPrismaPaginationArgs(args),
+						orderBy: {
+							createdAt: 'desc',
+						},
 					})
 				return getConnection({ args, nodes: comments })
 			},

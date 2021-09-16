@@ -23,6 +23,11 @@ input CreateCommentInput {
   postId: String!
 }
 
+type CreateCommentObject {
+  body: String!
+  id: String!
+}
+
 input CreatePostInput {
   caption: String!
   gifLink: String
@@ -71,7 +76,7 @@ input LoginInput {
 
 type Mutation {
   changePassword(input: ChangePasswordInput!): ResultResponse!
-  createComment(input: CreateCommentInput!): ResultResponse!
+  createComment(input: CreateCommentInput!): CreateCommentObject!
   createPost(input: CreatePostInput!): Post!
   deleteComment(id: String!): ResultResponse!
   deletePost(id: String!): ResultResponse!
