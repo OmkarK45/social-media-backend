@@ -10,22 +10,22 @@ const SearchResponse = builder.simpleObject('SearchResponse', {
 	}),
 })
 
-builder.mutationField('searchUser', (t) =>
+builder.queryField('searchUser', (t) =>
 	t.connection({
 		type: UserObject,
 		args: { keyword: t.arg.string(), ...t.arg.connectionArgs() },
-		resolve: async (_, { keyword, first, last, after, before }, _ctx) => {
+		resolve: async (_, { keyword, ...args }, _ctx) => {
 			const users = await prisma.user.findMany({
 				where: {
 					username: {
 						startsWith: keyword.toLowerCase(),
 					},
 				},
-				...getPrismaPaginationArgs({ after, before, first, last }),
+				...getPrismaPaginationArgs({ ...args }),
 			})
 
 			return getConnection({
-				args: { first, last, after, before },
+				args,
 				nodes: users,
 			})
 		},

@@ -21,3 +21,30 @@ builder.queryField('feed', (t) =>
 		},
 	})
 )
+
+// posts with particular hashtag
+builder.queryField('postsContainingHashtag', (t) =>
+	t.connection({
+		type: PostObject,
+		args: { hashtag: t.arg.string(), ...t.arg.connectionArgs() },
+		resolve: async (_root, { hashtag, ...args }, _ctx) => {
+			console.log(getPrismaPaginationArgs(args))
+			const posts = await prisma.post.findMany({
+				where: {
+					hashtags: {
+						some: {
+							hashtag: {
+								equals: hashtag,
+							},
+						},
+					},
+				},
+				...getPrismaPaginationArgs(args),
+			})
+			return getConnection({
+				args,
+				nodes: posts,
+			})
+		},
+	})
+)

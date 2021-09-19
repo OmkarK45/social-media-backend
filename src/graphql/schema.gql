@@ -85,21 +85,10 @@ type Mutation {
   editProfile(input: EditProfileInput!): User!
   followUser(input: FollowUserInput!): User!
   logout: ResultResponse!
-  searchUser(after: ID, before: ID, first: Int, keyword: String!, last: Int): MutationSearchUserConnection!
   signIn(input: SignInInput!): AuthResponse!
   signUp(input: SignUpInput!): AuthResponse!
   toggleLike(id: String!): ResultResponse!
   unfollowUser(input: FollowUserInput!): User!
-}
-
-type MutationSearchUserConnection {
-  edges: [MutationSearchUserConnectionEdge]!
-  pageInfo: PageInfo!
-}
-
-type MutationSearchUserConnectionEdge {
-  cursor: String!
-  node: User!
 }
 
 interface Node {
@@ -171,7 +160,11 @@ type Query {
   me: User!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+  popularHashtags(after: ID, before: ID, first: Int, last: Int): QueryPopularHashtagsConnection!
   postsByHashtag(after: ID, before: ID, first: Int, hashtag: String!, last: Int): QueryPostsByHashtagConnection!
+  postsContainingHashtag(after: ID, before: ID, first: Int, hashtag: String!, last: Int): QueryPostsContainingHashtagConnection!
+  searchByHashtag(after: ID, before: ID, first: Int, keyword: String!, last: Int): QuerySearchByHashtagConnection!
+  searchUser(after: ID, before: ID, first: Int, keyword: String!, last: Int): QuerySearchUserConnection!
   seeLikes(after: ID, before: ID, first: Int, id: String!, last: Int): QuerySeeLikesConnection!
   seePost(id: String!): Post!
   seeProfile(username: String!): ProfileResponse!
@@ -188,6 +181,16 @@ type QueryFeedConnectionEdge {
   node: Post!
 }
 
+type QueryPopularHashtagsConnection {
+  edges: [QueryPopularHashtagsConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QueryPopularHashtagsConnectionEdge {
+  cursor: String!
+  node: Hashtag!
+}
+
 type QueryPostsByHashtagConnection {
   edges: [QueryPostsByHashtagConnectionEdge]!
   pageInfo: PageInfo!
@@ -196,6 +199,36 @@ type QueryPostsByHashtagConnection {
 type QueryPostsByHashtagConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+type QueryPostsContainingHashtagConnection {
+  edges: [QueryPostsContainingHashtagConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QueryPostsContainingHashtagConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type QuerySearchByHashtagConnection {
+  edges: [QuerySearchByHashtagConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QuerySearchByHashtagConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type QuerySearchUserConnection {
+  edges: [QuerySearchUserConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QuerySearchUserConnectionEdge {
+  cursor: String!
+  node: User!
 }
 
 type QuerySeeLikesConnection {

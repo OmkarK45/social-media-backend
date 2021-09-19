@@ -218,8 +218,10 @@ builder.mutationField('editPost', (t) =>
 		args: { input: t.arg({ type: EditPostInput }) },
 		authScopes: { user: true },
 		resolve: async (_parent, { input }, { user }) => {
+			console.log(input)
+
 			const oldPost = await prisma.post.findFirst({
-				where: { id: input.id, userId: user!.id },
+				where: { id: decodeGlobalID(input.id).id, userId: user!.id },
 				include: {
 					hashtags: {
 						select: { hashtag: true },
@@ -229,9 +231,8 @@ builder.mutationField('editPost', (t) =>
 			})
 
 			return await prisma.post.update({
-				where: { id: input.id },
+				where: { id: decodeGlobalID(input.id).id },
 				data: {
-					id: input.id,
 					caption: input.caption,
 					gifLink: input.gifLink,
 					hashtags: {
@@ -263,7 +264,7 @@ builder.queryField('postsByHashtag', (t) =>
 	t.connection({
 		type: PostObject,
 		args: { hashtag: t.arg.string(), ...t.arg.connectionArgs() },
-		resolve: async (_, { hashtag, first, last, after, before }, _ctx) => {
+		resolve: async (_, { hashtag, ...args }, _ctx) => {
 			const posts = await prisma.post.findMany({
 				where: {
 					hashtags: {
@@ -274,9 +275,10 @@ builder.queryField('postsByHashtag', (t) =>
 						},
 					},
 				},
+				...getPrismaPaginationArgs(args),
 			})
 			return getConnection({
-				args: { first, last, after, before },
+				args,
 				nodes: posts,
 			})
 		},
