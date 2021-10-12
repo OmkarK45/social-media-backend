@@ -6,8 +6,17 @@ import { EditProfileInput } from '~/graphql/input'
 import { prisma } from '~/lib/db'
 import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { upload } from '~/lib/upload'
+import { PostObject } from '../post/PostResolver'
 
 export const UserObject = builder.objectRef<User>('User')
+
+const UserStatsObject = builder.simpleObject('UserStatsObject', {
+	fields: (t) => ({
+		followingCount: t.int(),
+		followersCount: t.int(),
+		postsCount: t.int(),
+	}),
+})
 
 builder.node(UserObject, {
 	isTypeOf: (value) =>
@@ -28,10 +37,10 @@ builder.node(UserObject, {
 			authScopes: {
 				user: true,
 			},
-			resolve: async (_, args, { user }) => {
+			resolve: async ({ email }, args, { user }) => {
 				const followers = await prisma.user
 					.findUnique({
-						where: { email: user!.email },
+						where: { email },
 						select: { hashedPassword: false },
 					})
 					.followers({
@@ -41,13 +50,14 @@ builder.node(UserObject, {
 				return getConnection({ args, nodes: followers })
 			},
 		}),
+
 		following: t.connection({
 			type: UserObject,
 			authScopes: { user: true },
-			resolve: async (_, args, { user }) => {
+			resolve: async ({ email }, args, { user }) => {
 				const following = await prisma.user
 					.findUnique({
-						where: { email: user!.email },
+						where: { email },
 						select: { hashedPassword: false },
 					})
 					.following({
@@ -55,6 +65,60 @@ builder.node(UserObject, {
 					})
 
 				return getConnection({ args, nodes: following })
+			},
+		}),
+
+		stats: t.field({
+			type: UserStatsObject,
+			resolve: async ({ email }, _args, _ctx) => {
+				const counts = await prisma.user.findUnique({
+					where: { email },
+					include: { followers: true, following: true, posts: true },
+				})
+
+				return {
+					followersCount: counts?.followers.length ?? 0,
+					followingCount: counts?.following.length ?? 0,
+					postsCount: counts?.posts.length ?? 0,
+				}
+			},
+		}),
+
+		posts: t.connection({
+			type: PostObject,
+			args: { username: t.arg.string(), ...t.arg.connectionArgs() },
+			resolve: async (_, { username, ...args }, _ctx) => {
+				const userPosts = await prisma.user
+					.findUnique({
+						where: { username },
+						rejectOnNotFound: true,
+					})
+					.posts({
+						...getPrismaPaginationArgs(args),
+					})
+
+				return getConnection({
+					args,
+					nodes: userPosts,
+				})
+			},
+		}),
+
+		isMe: t.boolean({
+			resolve: async ({ id }, _, { user }) => {
+				return id === user?.id
+			},
+		}),
+
+		isFollowing: t.boolean({
+			resolve: async ({ id }, _, { user }) => {
+				const following = await prisma.user.count({
+					where: {
+						username: user?.username,
+						following: { some: { id } },
+					},
+				})
+				return Boolean(following)
 			},
 		}),
 	}),

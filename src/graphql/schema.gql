@@ -60,6 +60,10 @@ input EditProfileInput {
 """The `Upload` scalar type represents a file upload."""
 scalar FileUpload
 
+type FollowResponse {
+  ok: Boolean!
+}
+
 input FollowUserInput {
   username: String!
 }
@@ -83,12 +87,12 @@ type Mutation {
   editComment(input: EditCommentInput!): ResultResponse!
   editPost(input: EditPostInput!): Post!
   editProfile(input: EditProfileInput!): User!
-  followUser(input: FollowUserInput!): User!
+  followUser(input: FollowUserInput!): FollowResponse!
   logout: ResultResponse!
   signIn(input: SignInInput!): AuthResponse!
   signUp(input: SignUpInput!): AuthResponse!
   toggleLike(id: String!): ResultResponse!
-  unfollowUser(input: FollowUserInput!): User!
+  unfollowUser(input: FollowUserInput!): FollowResponse!
 }
 
 interface Node {
@@ -169,6 +173,7 @@ type Query {
   seePost(id: String!): Post!
   seeProfile(username: String!): ProfileResponse!
   sessionById(id: String!): Session!
+  whoToFollow(after: ID, before: ID, first: Int, last: Int): QueryWhoToFollowConnection!
 }
 
 type QueryFeedConnection {
@@ -241,6 +246,16 @@ type QuerySeeLikesConnectionEdge {
   node: User!
 }
 
+type QueryWhoToFollowConnection {
+  edges: [QueryWhoToFollowConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QueryWhoToFollowConnectionEdge {
+  cursor: String!
+  node: User!
+}
+
 type ResultResponse {
   success: Boolean!
 }
@@ -281,7 +296,11 @@ type User implements Node {
   followers(after: ID, before: ID, first: Int, last: Int): UserFollowersConnection!
   following(after: ID, before: ID, first: Int, last: Int): UserFollowingConnection!
   id: ID!
+  isFollowing: Boolean!
+  isMe: Boolean!
   lastName: String
+  posts(after: ID, before: ID, first: Int, last: Int, username: String!): UserPostsConnection!
+  stats: UserStatsObject!
   updatedAt: DateTime!
   username: String!
 }
@@ -304,4 +323,20 @@ type UserFollowingConnection {
 type UserFollowingConnectionEdge {
   cursor: String!
   node: User!
+}
+
+type UserPostsConnection {
+  edges: [UserPostsConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type UserPostsConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type UserStatsObject {
+  followersCount: Int!
+  followingCount: Int!
+  postsCount: Int!
 }

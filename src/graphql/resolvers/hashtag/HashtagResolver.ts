@@ -20,6 +20,7 @@ builder.queryField('popularHashtags', (t) =>
 			const popularHashtags = await prisma.hashtag.findMany({
 				...getPrismaPaginationArgs(args),
 			})
+
 			return getConnection({
 				args,
 				nodes: popularHashtags,
