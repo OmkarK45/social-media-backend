@@ -15,6 +15,7 @@ import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 import { getHash } from '~/lib/blurhash'
 import { decodeGlobalID } from '@giraphql/plugin-relay'
+import { decode } from 'jsonwebtoken'
 
 export const PostObject = builder.objectRef<Post>('Post')
 
@@ -182,18 +183,27 @@ builder.mutationField('deletePost', (t) =>
 		authScopes: { user: true },
 		resolve: async (_, { id }, { user }) => {
 			const photo = await prisma.post.findUnique({
-				where: { id },
+				where: { id: decodeGlobalID(id).id },
 				select: { userId: true },
 				rejectOnNotFound: true,
 			})
+			console.log(photo)
 
 			if (photo.userId !== user!.id) {
 				throw new Error('You are not authorized to perform this operation.')
 			}
 
-			await prisma.post.delete({
-				where: { id },
-			})
+			Promise.all([
+				await prisma.comment.deleteMany({
+					where: { postId: decodeGlobalID(id).id },
+				}),
+				await prisma.like.deleteMany({
+					where: { postId: decodeGlobalID(id).id },
+				}),
+				await prisma.post.delete({
+					where: { id: decodeGlobalID(id).id },
+				}),
+			])
 
 			return {
 				success: true,

@@ -16,6 +16,9 @@ builder.queryField('feed', (t) =>
 					],
 				},
 				...getPrismaPaginationArgs(args),
+				orderBy: {
+					createdAt: 'desc',
+				},
 			})
 			return getConnection({ args, nodes: posts })
 		},
