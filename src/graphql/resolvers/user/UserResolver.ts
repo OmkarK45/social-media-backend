@@ -27,6 +27,7 @@ builder.node(UserObject, {
 		email: t.exposeString('email'),
 		avatar: t.exposeString('avatar', { nullable: true }),
 		coverImage: t.exposeString('coverImage', { nullable: true }),
+		coverImageBg: t.exposeString('coverImageBg', { nullable: true }),
 		username: t.exposeString('username'),
 		lastName: t.exposeString('lastName', { nullable: true }),
 		firstName: t.exposeString('firstName'),
@@ -176,6 +177,7 @@ builder.mutationField('editProfile', (t) =>
 					firstName,
 					avatar: avatarUpload?.url,
 					coverImage: coverImageUpload?.url,
+					coverImageBg: coverImageUpload?.url ?? null,
 				},
 			})
 			return updatedUser

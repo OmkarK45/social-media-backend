@@ -304,6 +304,7 @@ type User implements Node {
   avatar: String
   bio: String
   coverImage: String
+  coverImageBg: String
   createdAt: DateTime!
   email: String!
   firstName: String!

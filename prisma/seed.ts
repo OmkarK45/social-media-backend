@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client'
+import { generateCoverImage } from '../src/graphql/utils/generateCoverImage'
 import { getAvatar, getCoverImages } from '../src/graphql/utils/avatar'
 import { hashPassword } from '../src/lib/password'
 
@@ -8,15 +9,15 @@ async function getPwd() {
 	return await hashPassword('123456')
 }
 
-const userData = [...Array(31).keys()].slice(1)
+const userData = [...Array(25).keys()].slice(1)
 const postData = [...Array(10).keys()].slice(1)
 
 async function seedUsers() {
 	for (const [u, i] of userData.entries()) {
 		const user = await prisma.user.create({
 			data: {
-				email: `demo_account${u}@gmail.com`,
-				username: `demo_account_${u}`,
+				email: `demo_account${(u + 1) * 100}@gmail.com`,
+				username: `demo_account_${(u + 1) * 100}`,
 				firstName: `demo_firstName_${u}`,
 				hashedPassword: await getPwd(),
 				bio: `Hello my name is demo_account_${u}. Have a good day`,
@@ -26,7 +27,8 @@ async function seedUsers() {
 					},
 				},
 				avatar: getAvatar(),
-				coverImage: getCoverImages(),
+				coverImage: generateCoverImage().coverImage,
+				coverImageBg: generateCoverImage().coverImageBg,
 			},
 		})
 		console.log(`Created user with id: ${user.id}`)
@@ -53,8 +55,8 @@ async function seedPosts() {
 
 async function main() {
 	console.log(`Start seeding ...`)
-	// await seedUsers()
-	await seedPosts()
+	await seedUsers()
+	// await seedPosts()
 	console.log(`Seeding finished.`)
 }
 

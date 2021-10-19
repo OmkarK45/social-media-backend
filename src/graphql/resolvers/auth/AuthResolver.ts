@@ -11,6 +11,7 @@ import { ResultResponse } from '../ResultResponse'
 import { prisma } from '~/lib/db'
 import { createSession, removeSession } from '~/lib/session'
 import { getAvatar } from '~/graphql/utils/avatar'
+import { generateCoverImage } from '~/graphql/utils/generateCoverImage'
 
 export const SessionObject = builder.objectRef<Session>('Session')
 
@@ -71,6 +72,8 @@ builder.mutationField('signUp', (t) =>
 					lastName: input.lastName,
 					hashedPassword: await hashPassword(input.password),
 					avatar: getAvatar(),
+					coverImage: generateCoverImage().coverImage,
+					coverImageBg: generateCoverImage().coverImageBg,
 				},
 			})
 
