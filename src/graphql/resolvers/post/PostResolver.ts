@@ -1,6 +1,6 @@
 import { NodeType, Post } from '@prisma/client'
 import { z } from 'zod'
-import { getPlaiceholder } from 'plaiceholder'
+import { decodeGlobalID } from '@giraphql/plugin-relay'
 
 import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { prisma } from '~/lib/db'
@@ -14,8 +14,8 @@ import { HashtagObject } from '../hashtag/HashtagResolver'
 import { ResultResponse } from '../ResultResponse'
 import { UserObject } from '../user/UserResolver'
 import { getHash } from '~/lib/blurhash'
-import { decodeGlobalID } from '@giraphql/plugin-relay'
-import { decode } from 'jsonwebtoken'
+import { parseMentions } from '~/graphql/utils/parseMentions'
+import { getMentions } from '~/graphql/utils/getMentions'
 
 export const PostObject = builder.objectRef<Post>('Post')
 
@@ -136,7 +136,7 @@ builder.mutationField('createPost', (t) =>
 
 		args: { input: t.arg({ type: CreatePostInput }) },
 
-		resolve: async (_, { input }, { user }) => {
+		resolve: async (_, { input }, { user, session }) => {
 			/**  Incoming image file  */
 			let media
 			let response
@@ -157,7 +157,7 @@ builder.mutationField('createPost', (t) =>
 				hashTags = parseHashtags(input.caption)
 			}
 
-			return await prisma.post.create({
+			const post = await prisma.post.create({
 				data: {
 					caption: input.caption,
 					image: response ? response.url : null,
@@ -171,6 +171,24 @@ builder.mutationField('createPost', (t) =>
 					}),
 				},
 			})
+
+			const usersMentioned = await parseMentions(
+				getMentions(input.caption),
+				session,
+				post
+			)
+			console.log('Users Mentioned', usersMentioned)
+			const mentions = usersMentioned.filter(
+				(user) => user.receiverId !== session?.userId
+			)
+			console.log('Mentioned', mentions)
+
+			await prisma.notification.createMany({
+				data: mentions,
+				skipDuplicates: true,
+			})
+
+			return post
 		},
 	})
 )
@@ -187,23 +205,19 @@ builder.mutationField('deletePost', (t) =>
 				select: { userId: true },
 				rejectOnNotFound: true,
 			})
-			console.log(photo)
 
 			if (photo.userId !== user!.id) {
 				throw new Error('You are not authorized to perform this operation.')
 			}
-
-			Promise.all([
-				await prisma.comment.deleteMany({
-					where: { postId: decodeGlobalID(id).id },
-				}),
-				await prisma.like.deleteMany({
-					where: { postId: decodeGlobalID(id).id },
-				}),
-				await prisma.post.delete({
-					where: { id: decodeGlobalID(id).id },
-				}),
-			])
+			await prisma.comment.deleteMany({
+				where: { postId: decodeGlobalID(id).id },
+			})
+			await prisma.like.deleteMany({
+				where: { postId: decodeGlobalID(id).id },
+			})
+			await prisma.post.delete({
+				where: { id: decodeGlobalID(id).id },
+			})
 
 			return {
 				success: true,
@@ -214,7 +228,6 @@ builder.mutationField('deletePost', (t) =>
 
 const EditPostInput = builder.inputType('EditPostInput', {
 	fields: (t) => ({
-		// TODO -> better validate here
 		id: t.string(),
 		caption: t.string(),
 		gifLink: t.string({ required: false }),

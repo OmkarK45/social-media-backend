@@ -7,6 +7,7 @@ import { UserObject } from '../user/UserResolver'
 import { Context } from '~/graphql/context'
 import { prisma } from '~/lib/db'
 import { decodeGlobalID } from '@giraphql/plugin-relay'
+import { createNotification } from '../notifications/NotificationResolver'
 
 export const CommentObject = builder.objectRef<Comment>('Comment')
 
@@ -61,12 +62,24 @@ builder.mutationField('createComment', (t) =>
 		args: { input: t.arg({ type: CreateCommentInput }) },
 		authScopes: { user: true },
 		resolve: async (_parent, { input }, { user }) => {
+			const post = await prisma.post.findUnique({
+				where: { id: input.postId },
+				include: { user: true },
+			})
+
 			const newComment = await prisma.comment.create({
 				data: {
 					body: input.body,
 					post: { connect: { id: decodeGlobalID(input.postId).id } },
 					user: { connect: { id: user!.id } },
 				},
+			})
+
+			await createNotification({
+				dispatcherId: user?.id!,
+				receiverId: post?.userId!,
+				entityId: post?.id!,
+				type: 'POST_REPLY',
 			})
 			/**
 			 * TODO: customize this Result response to include id as well

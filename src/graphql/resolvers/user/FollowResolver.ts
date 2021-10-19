@@ -72,7 +72,12 @@ builder.queryField('whoToFollow', (t) =>
 				},
 				...getPrismaPaginationArgs(args),
 			})
-			return getConnection({ args, nodes: suggestions })
+
+			const newSuggestions = suggestions.filter(
+				(suggestion) => suggestion.id !== user?.id
+			)
+
+			return getConnection({ args, nodes: newSuggestions })
 		},
 	})
 )

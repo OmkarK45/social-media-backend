@@ -1,3 +1,9 @@
+-- CreateEnum
+CREATE TYPE "NodeType" AS ENUM ('User', 'Comment', 'Post', 'Notification');
+
+-- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('POST_LIKE', 'POST_REPLY', 'USER_FOLLOW', 'USER_MENTION');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -5,11 +11,13 @@ CREATE TABLE "User" (
     "lastName" TEXT,
     "username" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "hashedPassword" BYTEA NOT NULL,
+    "hashedPassword" TEXT NOT NULL,
     "bio" TEXT,
     "avatar" TEXT,
+    "coverImage" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "nodeType" "NodeType" NOT NULL DEFAULT E'User',
 
     PRIMARY KEY ("id")
 );
@@ -30,9 +38,12 @@ CREATE TABLE "Post" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "image" TEXT,
+    "blurHash" TEXT,
     "caption" TEXT,
+    "gifLink" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "nodeType" "NodeType" NOT NULL DEFAULT E'Post',
 
     PRIMARY KEY ("id")
 );
@@ -66,25 +77,24 @@ CREATE TABLE "Comment" (
     "body" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "nodeType" "NodeType" NOT NULL DEFAULT E'Comment',
 
     PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Foo" (
-    "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
-
-    PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Bar" (
-    "id" SERIAL NOT NULL,
-    "fooId" INTEGER NOT NULL,
-    "text" TEXT NOT NULL,
+CREATE TABLE "Notifications" (
+    "id" TEXT NOT NULL,
+    "message" TEXT,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "type" "NotificationType" NOT NULL,
+    "entityId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "receiverId" TEXT NOT NULL,
+    "dispatcherId" TEXT NOT NULL,
+    "likeId" TEXT,
+    "postId" TEXT,
 
     PRIMARY KEY ("id")
 );
@@ -112,6 +122,9 @@ CREATE UNIQUE INDEX "Like.postId_userId_unique" ON "Like"("postId", "userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Hashtag.hashtag_unique" ON "Hashtag"("hashtag");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Notifications.entityId_unique" ON "Notifications"("entityId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_FollowRelation_AB_unique" ON "_FollowRelation"("A", "B");
@@ -144,7 +157,16 @@ ALTER TABLE "Comment" ADD FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELE
 ALTER TABLE "Comment" ADD FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Bar" ADD FOREIGN KEY ("fooId") REFERENCES "Foo"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Notifications" ADD FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notifications" ADD FOREIGN KEY ("dispatcherId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notifications" ADD FOREIGN KEY ("likeId") REFERENCES "Like"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notifications" ADD FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_FollowRelation" ADD FOREIGN KEY ("A") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

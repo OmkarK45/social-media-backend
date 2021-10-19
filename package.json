@@ -13,6 +13,9 @@
 		"db:studio": "npx prisma studio --browser none",
 		"gql:schema": "ts-node -r dotenv/config src/graphql/schema.ts"
 	},
+	"prisma": {
+		"seed": "ts-node prisma/seed.ts"
+	},
 	"dependencies": {
 		"@giraphql/core": "^2.10.2",
 		"@giraphql/plugin-dataloader": "^2.12.0",
