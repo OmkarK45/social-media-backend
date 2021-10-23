@@ -1,38 +1,38 @@
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
-import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
-import { PostObject } from '../post/PostResolver'
 
 builder.queryField('feed', (t) =>
-	t.connection({
-		type: PostObject,
+	t.prismaConnection({
+		type: 'Post',
+		cursor: 'id',
 		authScopes: { user: true },
-		resolve: async (_parent, args, { user }) => {
+		resolve: async (query, _parent, args, { user }) => {
 			const posts = await prisma.post.findMany({
+				...query,
 				where: {
 					OR: [
 						{ user: { followers: { some: { id: user!.id } } } },
 						{ userId: user?.id },
 					],
 				},
-				...getPrismaPaginationArgs(args),
 				orderBy: {
 					createdAt: 'desc',
 				},
 			})
-			return getConnection({ args, nodes: posts })
+			return posts
 		},
 	})
 )
 
 // posts with particular hashtag
 builder.queryField('postsContainingHashtag', (t) =>
-	t.connection({
-		type: PostObject,
-		args: { hashtag: t.arg.string(), ...t.arg.connectionArgs() },
-		resolve: async (_root, { hashtag, ...args }, _ctx) => {
-			console.log(getPrismaPaginationArgs(args))
+	t.prismaConnection({
+		type: 'Post',
+		cursor: 'id',
+		args: { hashtag: t.arg.string() },
+		resolve: async (query, _root, { hashtag, ...args }, _ctx) => {
 			const posts = await prisma.post.findMany({
+				...query,
 				where: {
 					hashtags: {
 						some: {
@@ -42,12 +42,8 @@ builder.queryField('postsContainingHashtag', (t) =>
 						},
 					},
 				},
-				...getPrismaPaginationArgs(args),
 			})
-			return getConnection({
-				args,
-				nodes: posts,
-			})
+			return posts
 		},
 	})
 )

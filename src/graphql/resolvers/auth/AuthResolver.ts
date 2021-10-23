@@ -1,7 +1,6 @@
 import { Session } from '@prisma/client'
 
 import { builder } from '~/graphql/builder'
-import { UserObject } from '../user/UserResolver'
 import { ChangePasswordInput, SignInInput, SignUpInput } from '~/graphql/input'
 
 import { login } from '~/lib/auth'
@@ -28,7 +27,6 @@ SessionObject.implement({
 builder.queryField('sessionById', (t) =>
 	t.field({
 		type: SessionObject,
-		// TODO look into this
 		args: { id: t.arg.string() },
 		resolve: async (_, { id }, { session, user }) => {
 			return session!
@@ -39,8 +37,15 @@ builder.queryField('sessionById', (t) =>
 const AuthResponseObject = builder.simpleObject('AuthResponse', {
 	fields: (t) => ({
 		success: t.boolean(),
-		user: t.field({
-			type: UserObject,
+		user: t.prismaField({
+			type: 'User',
+			resolve: async (query, _parent, _args, { user }) => {
+				return await prisma.user.findUnique({
+					...query,
+					where: { id: user?.id },
+					rejectOnNotFound: true,
+				})
+			},
 		}),
 		session: t.field({
 			type: SessionObject,

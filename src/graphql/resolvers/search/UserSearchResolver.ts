@@ -1,33 +1,21 @@
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
-import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
-import { UserObject } from '../user/UserResolver'
-
-const SearchResponse = builder.simpleObject('SearchResponse', {
-	fields: (t) => ({
-		users: t.field({ type: [UserObject] }),
-		total: t.int(),
-	}),
-})
 
 builder.queryField('searchUser', (t) =>
-	t.connection({
-		type: UserObject,
-		args: { keyword: t.arg.string(), ...t.arg.connectionArgs() },
-		resolve: async (_, { keyword, ...args }, _ctx) => {
+	t.prismaConnection({
+		type: 'User',
+		cursor: 'id',
+		args: { keyword: t.arg.string() },
+		resolve: async (query, _, { keyword }, _ctx) => {
 			const users = await prisma.user.findMany({
+				...query,
 				where: {
 					username: {
 						startsWith: keyword.toLowerCase(),
 					},
 				},
-				...getPrismaPaginationArgs({ ...args }),
 			})
-
-			return getConnection({
-				args,
-				nodes: users,
-			})
+			return users
 		},
 	})
 )

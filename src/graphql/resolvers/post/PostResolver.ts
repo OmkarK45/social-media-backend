@@ -1,35 +1,27 @@
-import { NodeType, Post } from '@prisma/client'
 import { z } from 'zod'
 import { decodeGlobalID } from '@giraphql/plugin-relay'
 
-import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { prisma } from '~/lib/db'
 import { upload } from '~/lib/upload'
 
 import { builder } from '~/graphql/builder'
 import { HashTag, parseHashtags } from '~/graphql/utils/hashtags'
 
-import { CommentObject } from '../comments/CommentResolver'
-import { HashtagObject } from '../hashtag/HashtagResolver'
 import { ResultResponse } from '../ResultResponse'
-import { UserObject } from '../user/UserResolver'
 import { getHash } from '~/lib/blurhash'
 import { parseMentions } from '~/graphql/utils/parseMentions'
 import { getMentions } from '~/graphql/utils/getMentions'
 
-export const PostObject = builder.objectRef<Post>('Post')
-
-builder.node(PostObject, {
-	isTypeOf: (value) =>
-		(value as { nodeType?: NodeType }).nodeType === NodeType.Post,
-	id: { resolve: (post) => post.id },
+builder.prismaObject('Post', {
+	findUnique: (post) => ({ id: post.id }),
 	fields: (t) => ({
+		id: t.exposeString('id'),
 		caption: t.exposeString('caption', { nullable: true }),
 		image: t.exposeString('image', { nullable: true }),
 		gifImage: t.exposeString('gifLink', { nullable: true }),
-		blurHash: t.exposeString('blurHash', { nullable: true }),
 		createdAt: t.expose('createdAt', { type: 'DateTime' }),
 		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
+		blurHash: t.exposeString('blurHash', { nullable: true }),
 		isMine: t.boolean({
 			resolve: async ({ userId }, _, { user }) => {
 				if (!user) {
@@ -53,71 +45,21 @@ builder.node(PostObject, {
 				return false
 			},
 		}),
-		user: t.field({
-			type: UserObject,
-			resolve: async ({ userId }, _, _ctx) => {
-				return await prisma.user.findUnique({
-					where: { id: userId },
-					rejectOnNotFound: true,
-				})
-			},
+		user: t.relation('user'),
+		hashtags: t.relatedConnection('hashtags', {
+			cursor: 'id',
 		}),
-		hashtags: t.connection({
-			type: HashtagObject,
-			resolve: async ({ id }, args, _ctx) => {
-				const hashtags = await prisma.post
-					.findUnique({ where: { id } })
-					.hashtags()
-				return getConnection({ args, nodes: hashtags })
-			},
+		comments: t.relatedConnection('comments', {
+			cursor: 'id',
+			totalCount: true,
 		}),
-		likes: t.int({
-			resolve: async ({ id }, _args, _ctx) => {
-				return prisma.like.count({ where: { postId: id } })
-			},
-		}),
-		likedBy: t.connection({
-			type: UserObject,
-			resolve: async ({ id }, args, _ctx) => {
-				const usersWhoLiked = await prisma.user.findMany({
-					where: {
-						likes: {
-							some: {
-								postId: id,
-							},
-						},
-					},
-					...getPrismaPaginationArgs(args),
-				})
-
-				return getConnection({ args, nodes: usersWhoLiked })
-			},
-		}),
-		comments: t.connection({
-			type: CommentObject,
-
-			resolve: async ({ id }, args, _ctx) => {
-				const comments = await prisma.post
-					.findUnique({
-						where: { id },
-					})
-					.comments({
-						...getPrismaPaginationArgs(args),
-						orderBy: {
-							createdAt: 'desc',
-						},
-					})
-				return getConnection({ args, nodes: comments })
-			},
-		}),
-		totalComments: t.int({
-			resolve: ({ id }, _, _ctx) =>
-				prisma.comment.count({ where: { postId: id } }),
+		likes: t.relatedConnection('likes', {
+			cursor: 'id',
+			totalCount: true,
 		}),
 	}),
 })
 
-// although both are optional here, we check it on the frontend and make sure one of them is required
 const CreatePostInput = builder.inputType('CreatePostInput', {
 	fields: (t) => ({
 		caption: t.field({
@@ -131,12 +73,12 @@ const CreatePostInput = builder.inputType('CreatePostInput', {
 
 /** Creates a new Post */
 builder.mutationField('createPost', (t) =>
-	t.field({
-		type: PostObject,
+	t.prismaField({
+		type: 'Post',
 
 		args: { input: t.arg({ type: CreatePostInput }) },
 
-		resolve: async (_, { input }, { user, session }) => {
+		resolve: async (query, _, { input }, { user, session }) => {
 			/**  Incoming image file  */
 			let media
 			let response
@@ -236,11 +178,11 @@ const EditPostInput = builder.inputType('EditPostInput', {
 
 /** Edit Post */
 builder.mutationField('editPost', (t) =>
-	t.field({
-		type: PostObject,
+	t.prismaField({
+		type: 'Post',
 		args: { input: t.arg({ type: EditPostInput }) },
 		authScopes: { user: true },
-		resolve: async (_parent, { input }, { user }) => {
+		resolve: async (query, _parent, { input }, { user }) => {
 			console.log(input)
 
 			const oldPost = await prisma.post.findFirst({
@@ -270,12 +212,13 @@ builder.mutationField('editPost', (t) =>
 
 // see individual post
 builder.queryField('seePost', (t) =>
-	t.field({
-		type: PostObject,
+	t.prismaField({
+		type: 'Post',
 		args: { id: t.arg.string() },
-		resolve: async (_, { id }, _ctx) => {
+		resolve: async (query, _, { id }, _ctx) => {
 			const decodedID = decodeGlobalID(id)
 			return await prisma.post.findUnique({
+				...query,
 				where: { id: decodedID.id },
 				rejectOnNotFound: true,
 			})
@@ -284,26 +227,22 @@ builder.queryField('seePost', (t) =>
 )
 
 builder.queryField('postsByHashtag', (t) =>
-	t.connection({
-		type: PostObject,
-		args: { hashtag: t.arg.string(), ...t.arg.connectionArgs() },
-		resolve: async (_, { hashtag, ...args }, _ctx) => {
+	t.prismaConnection({
+		type: 'Post',
+		cursor: 'id',
+		args: { hashtag: t.arg.string() },
+		resolve: async (query, _, { hashtag }, _ctx) => {
 			const posts = await prisma.post.findMany({
+				...query,
 				where: {
 					hashtags: {
 						some: {
-							hashtag: {
-								equals: hashtag.toLowerCase(),
-							},
+							hashtag: { equals: hashtag.toLowerCase() },
 						},
 					},
 				},
-				...getPrismaPaginationArgs(args),
 			})
-			return getConnection({
-				args,
-				nodes: posts,
-			})
+			return posts
 		},
 	})
 )

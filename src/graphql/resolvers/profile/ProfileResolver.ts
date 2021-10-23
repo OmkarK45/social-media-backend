@@ -1,28 +1,20 @@
 import { prisma } from '~/lib/db'
 import { builder } from '../../builder'
-import { UserObject } from '../user/UserResolver'
-
-const ProfileResponse = builder.simpleObject('ProfileResponse', {
-	fields: (t) => ({
-		user: t.field({ type: UserObject }),
-		// TODO : reveal posts here as well.
-	}),
-})
 
 builder.queryField('seeProfile', (t) =>
-	t.field({
-		type: ProfileResponse,
+	t.prismaField({
+		type: 'User',
 		args: { username: t.arg.string() },
 		authScopes: { user: true },
-		resolve: async (_root, { username }, { user }) => {
-			// @ Future -> check if profile is public or private
+		resolve: async (query, _root, { username }, _ctx) => {
 			const profile = await prisma.user.findUnique({
+				...query,
 				where: {
 					username,
 				},
 				rejectOnNotFound: true,
 			})
-			return { user: profile }
+			return profile
 		},
 	})
 )

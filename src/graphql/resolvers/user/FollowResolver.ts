@@ -1,7 +1,6 @@
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
 import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
-import { UserObject } from './UserResolver'
 
 const FollowUserInput = builder.inputType('FollowUserInput', {
 	fields: (t) => ({ username: t.string({}) }),
@@ -54,30 +53,28 @@ builder.mutationField('unfollowUser', (t) =>
 )
 
 builder.queryField('whoToFollow', (t) =>
-	t.connection({
-		type: UserObject,
+	t.prismaConnection({
+		type: 'User',
+		cursor: 'id',
 		authScopes: { user: false, unauthenticated: true },
-		resolve: async (_root, args, { user }) => {
-			const existingFollowing = await prisma.user
-				.findUnique({
-					where: { id: user!.id },
-				})
-				.following()
-
-			const suggestions = await prisma.user.findMany({
-				where: {
-					id: {
-						notIn: existingFollowing.map((x) => x.id),
-					},
-				},
-				...getPrismaPaginationArgs(args),
+		resolve: async (query, _root, args, { user }) => {
+			const following = await prisma.user.findFirst({
+				where: { id: user?.id },
+				select: { following: { select: { id: true } } },
 			})
 
-			const newSuggestions = suggestions.filter(
-				(suggestion) => suggestion.id !== user?.id
-			)
+			const existingFollows = following?.following.map((user) => user.id) ?? []
 
-			return getConnection({ args, nodes: newSuggestions })
+			return await prisma.user.findMany({
+				...query,
+				take: 5,
+				where: {
+					id: {
+						notIn: [...existingFollows, user?.id ?? ''],
+					},
+				},
+				orderBy: [{ posts: { _count: 'desc' } }],
+			})
 		},
 	})
 )

@@ -1,40 +1,40 @@
-import { Hashtag } from '@prisma/client'
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
-import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
-import { PostObject } from '../post/PostResolver'
 
-export const HashtagObject = builder.objectRef<Hashtag>('Hashtag')
-
-HashtagObject.implement({
+builder.prismaObject('Hashtag', {
+	findUnique: (hashtag) => ({ id: hashtag.id }),
 	fields: (t) => ({
 		id: t.exposeID('id'),
 		hashtag: t.exposeString('hashtag'),
+		posts: t.relatedConnection('posts', {
+			cursor: 'id',
+		}),
 	}),
 })
 
 builder.queryField('popularHashtags', (t) =>
-	t.connection({
-		type: HashtagObject,
-		resolve: async (_, args, _ctx) => {
+	t.prismaConnection({
+		type: 'Hashtag',
+		cursor: 'id',
+		maxSize: 100,
+		defaultSize: 10,
+		resolve: async (query, _, args, _ctx) => {
 			const popularHashtags = await prisma.hashtag.findMany({
-				...getPrismaPaginationArgs(args),
+				...query,
 			})
-
-			return getConnection({
-				args,
-				nodes: popularHashtags,
-			})
+			return popularHashtags
 		},
 	})
 )
 
 builder.queryField('searchByHashtag', (t) =>
-	t.connection({
-		type: PostObject,
-		args: { keyword: t.arg.string(), ...t.arg.connectionArgs() },
-		resolve: async (_root, { keyword, ...args }, _ctx) => {
+	t.prismaConnection({
+		type: 'Post',
+		cursor: 'id',
+		args: { keyword: t.arg.string() },
+		resolve: async (query, _root, { keyword }, _ctx) => {
 			const postsWithHashtag = await prisma.post.findMany({
+				...query,
 				where: {
 					hashtags: {
 						some: {
@@ -44,12 +44,8 @@ builder.queryField('searchByHashtag', (t) =>
 						},
 					},
 				},
-				...getPrismaPaginationArgs(args),
 			})
-			return getConnection({
-				args: { ...args },
-				nodes: postsWithHashtag,
-			})
+			return postsWithHashtag
 		},
 	})
 )

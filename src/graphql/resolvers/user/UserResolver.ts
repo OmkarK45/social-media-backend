@@ -1,30 +1,14 @@
-import { NodeType, User } from '@prisma/client'
-import { UploadApiResponse } from 'cloudinary'
-
 import { builder } from '~/graphql/builder'
 import { EditProfileInput } from '~/graphql/input'
 import { prisma } from '~/lib/db'
-import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 import { upload } from '~/lib/upload'
-import { PostObject } from '../post/PostResolver'
 
-export const UserObject = builder.objectRef<User>('User')
-
-const UserStatsObject = builder.simpleObject('UserStatsObject', {
+builder.prismaObject('User', {
+	findUnique: (user) => ({ id: user.id }),
 	fields: (t) => ({
-		followingCount: t.int(),
-		followersCount: t.int(),
-		postsCount: t.int(),
-	}),
-})
-
-builder.node(UserObject, {
-	isTypeOf: (value) =>
-		(value as { nodeType?: NodeType }).nodeType === NodeType.User,
-	id: { resolve: (user) => user.id },
-	fields: (t) => ({
-		bio: t.exposeString('bio', { nullable: true }),
+		id: t.exposeID('id'),
 		email: t.exposeString('email'),
+		bio: t.exposeString('bio', { nullable: true }),
 		avatar: t.exposeString('avatar', { nullable: true }),
 		coverImage: t.exposeString('coverImage', { nullable: true }),
 		coverImageBg: t.exposeString('coverImageBg', { nullable: true }),
@@ -33,84 +17,25 @@ builder.node(UserObject, {
 		firstName: t.exposeString('firstName'),
 		createdAt: t.expose('createdAt', { type: 'DateTime' }),
 		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
-		followers: t.connection({
-			type: UserObject,
-			authScopes: {
-				user: true,
-			},
-			resolve: async ({ email }, args, { user }) => {
-				const followers = await prisma.user
-					.findUnique({
-						where: { email },
-						select: { hashedPassword: false },
-					})
-					.followers({
-						...getPrismaPaginationArgs(args),
-					})
-
-				return getConnection({ args, nodes: followers })
-			},
+		followingCount: t.relationCount('following'),
+		followersCount: t.relationCount('followers'),
+		followers: t.relatedConnection('followers', {
+			cursor: 'id',
+			totalCount: true,
 		}),
-
-		following: t.connection({
-			type: UserObject,
-			authScopes: { user: true },
-			resolve: async ({ email }, args, { user }) => {
-				const following = await prisma.user
-					.findUnique({
-						where: { email },
-						select: { hashedPassword: false },
-					})
-					.following({
-						...getPrismaPaginationArgs(args),
-					})
-
-				return getConnection({ args, nodes: following })
-			},
+		following: t.relatedConnection('following', {
+			cursor: 'id',
+			totalCount: true,
 		}),
-
-		stats: t.field({
-			type: UserStatsObject,
-			resolve: async ({ email }, _args, _ctx) => {
-				const counts = await prisma.user.findUnique({
-					where: { email },
-					include: { followers: true, following: true, posts: true },
-				})
-
-				return {
-					followersCount: counts?.followers.length ?? 0,
-					followingCount: counts?.following.length ?? 0,
-					postsCount: counts?.posts.length ?? 0,
-				}
-			},
+		posts: t.relatedConnection('posts', {
+			cursor: 'id',
+			totalCount: true,
 		}),
-
-		posts: t.connection({
-			type: PostObject,
-			args: { username: t.arg.string(), ...t.arg.connectionArgs() },
-			resolve: async (_, { username, ...args }, _ctx) => {
-				const userPosts = await prisma.user
-					.findUnique({
-						where: { username },
-						rejectOnNotFound: true,
-					})
-					.posts({
-						...getPrismaPaginationArgs(args),
-					})
-
-				return getConnection({
-					args,
-					nodes: userPosts,
-				})
-			},
-		}),
-
 		isMe: t.boolean({
 			resolve: async ({ id }, _, { user }) => {
 				return id === user?.id
 			},
 		}),
-
 		isFollowing: t.boolean({
 			resolve: async ({ id }, _, { user }) => {
 				const following = await prisma.user.count({
@@ -126,11 +51,12 @@ builder.node(UserObject, {
 })
 
 builder.queryField('me', (t) =>
-	t.field({
-		type: UserObject,
+	t.prismaField({
+		type: 'User',
 		authScopes: { user: true },
-		resolve: async (_, _args, { user }) => {
+		resolve: async (query, _, _args, { user }) => {
 			const me = await prisma.user.findUnique({
+				...query,
 				where: { email: user?.email },
 				rejectOnNotFound: true,
 			})
@@ -141,16 +67,14 @@ builder.queryField('me', (t) =>
 )
 
 builder.mutationField('editProfile', (t) =>
-	t.field({
-		type: UserObject,
+	t.prismaField({
+		type: 'User',
 		args: { input: t.arg({ type: EditProfileInput }) },
 		authScopes: {
 			user: true,
 			unauthenticated: false,
 		},
-		resolve: async (_parent, { input }, { user }) => {
-			console.log('CURRENT USER', user)
-			// avatar upload + cover image upload
+		resolve: async (query, _parent, { input }, { user }) => {
 			let username
 			let firstName
 

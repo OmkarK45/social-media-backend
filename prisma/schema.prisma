@@ -10,6 +10,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator giraphql {
+  provider = "prisma-giraphql-types"
+}
+
 enum NodeType {
   User
   Comment

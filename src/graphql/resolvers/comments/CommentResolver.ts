@@ -1,37 +1,22 @@
-import { Comment } from '@prisma/client'
 import { string } from 'zod'
 
 import { builder } from '~/graphql/builder'
 import { ResultResponse } from '../ResultResponse'
-import { UserObject } from '../user/UserResolver'
-import { Context } from '~/graphql/context'
 import { prisma } from '~/lib/db'
 import { decodeGlobalID } from '@giraphql/plugin-relay'
 import { createNotification } from '../notifications/NotificationResolver'
 
-export const CommentObject = builder.objectRef<Comment>('Comment')
-
-CommentObject.implement({
+builder.prismaObject('Comment', {
+	findUnique: (comment) => ({ id: comment.id }),
 	fields: (t) => ({
-		body: t.exposeString('body'),
 		id: t.exposeString('id'),
-		createdAt: t.expose('createdAt', { type: 'DateTime' }),
-		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
-		// todo -> look into this
-		user: t.loadable({
-			type: UserObject,
-			load: async (ids: Array<string>, context: Context) => {
-				const result = await context.loader.loadUsersById(ids)
-				return result
-			},
-			resolve: ({ userId }) => {
-				return userId
-			},
-		}),
+		body: t.exposeString('body'),
+		user: t.relation('user'),
 		isMine: t.boolean({
 			authScopes: { user: true },
 			resolve: ({ userId }, _, { user }) => user!.id === userId,
 		}),
+		post: t.relation('post'),
 	}),
 })
 
@@ -63,7 +48,7 @@ builder.mutationField('createComment', (t) =>
 		authScopes: { user: true },
 		resolve: async (_parent, { input }, { user }) => {
 			const post = await prisma.post.findUnique({
-				where: { id: input.postId },
+				where: { id: decodeGlobalID(input.postId).id },
 				include: { user: true },
 			})
 
@@ -81,9 +66,7 @@ builder.mutationField('createComment', (t) =>
 				entityId: post?.id!,
 				type: 'POST_REPLY',
 			})
-			/**
-			 * TODO: customize this Result response to include id as well
-			 * */
+
 			return { id: newComment.id, body: newComment.body }
 		},
 	})

@@ -1,10 +1,17 @@
 import { decodeGlobalID } from '@giraphql/plugin-relay'
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
-import { getConnection } from '~/lib/page'
 import { createNotification } from '../notifications/NotificationResolver'
 import { ResultResponse } from '../ResultResponse'
-import { UserObject } from '../user/UserResolver'
+
+builder.prismaObject('Like', {
+	findUnique: (like) => ({ id: like.id }),
+	fields: (t) => ({
+		id: t.exposeString('id'),
+		post: t.relation('post'),
+		user: t.relation('user'),
+	}),
+})
 
 builder.mutationField('toggleLike', (t) =>
 	t.field({
@@ -51,27 +58,6 @@ builder.mutationField('toggleLike', (t) =>
 			return {
 				success: true,
 			}
-		},
-	})
-)
-
-builder.queryField('seeLikes', (t) =>
-	t.connection({
-		type: UserObject,
-		args: { ...t.arg.connectionArgs(), id: t.arg.string({}) },
-		resolve: async (_, { id, after, before, first, last }, { user }) => {
-			const likes = await prisma.like.findMany({
-				where: {
-					postId: id,
-				},
-				select: { user: true },
-			})
-			const usersWhoLiked = likes.map((like) => like.user)
-
-			return getConnection({
-				args: { after, before, first, last },
-				nodes: usersWhoLiked,
-			})
 		},
 	})
 )
