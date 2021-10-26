@@ -12,10 +12,10 @@ import { getHash } from '~/lib/blurhash'
 import { parseMentions } from '~/graphql/utils/parseMentions'
 import { getMentions } from '~/graphql/utils/getMentions'
 
-builder.prismaObject('Post', {
-	findUnique: (post) => ({ id: post.id }),
+builder.prismaNode('Post', {
+	findUnique: (id) => ({ id }),
+	id: { resolve: (post) => post.id },
 	fields: (t) => ({
-		id: t.exposeString('id'),
 		caption: t.exposeString('caption', { nullable: true }),
 		image: t.exposeString('image', { nullable: true }),
 		gifImage: t.exposeString('gifLink', { nullable: true }),
@@ -119,11 +119,9 @@ builder.mutationField('createPost', (t) =>
 				session,
 				post
 			)
-			console.log('Users Mentioned', usersMentioned)
 			const mentions = usersMentioned.filter(
 				(user) => user.receiverId !== session?.userId
 			)
-			console.log('Mentioned', mentions)
 
 			await prisma.notification.createMany({
 				data: mentions,
@@ -183,8 +181,6 @@ builder.mutationField('editPost', (t) =>
 		args: { input: t.arg({ type: EditPostInput }) },
 		authScopes: { user: true },
 		resolve: async (query, _parent, { input }, { user }) => {
-			console.log(input)
-
 			const oldPost = await prisma.post.findFirst({
 				where: { id: decodeGlobalID(input.id).id, userId: user!.id },
 				include: {

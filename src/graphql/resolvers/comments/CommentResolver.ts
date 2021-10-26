@@ -6,10 +6,10 @@ import { prisma } from '~/lib/db'
 import { decodeGlobalID } from '@giraphql/plugin-relay'
 import { createNotification } from '../notifications/NotificationResolver'
 
-builder.prismaObject('Comment', {
-	findUnique: (comment) => ({ id: comment.id }),
+builder.prismaNode('Comment', {
+	findUnique: (id) => ({ id: id }),
+	id: { resolve: (comment) => comment.id },
 	fields: (t) => ({
-		id: t.exposeString('id'),
 		body: t.exposeString('body'),
 		user: t.relation('user'),
 		isMine: t.boolean({
@@ -17,6 +17,8 @@ builder.prismaObject('Comment', {
 			resolve: ({ userId }, _, { user }) => user!.id === userId,
 		}),
 		post: t.relation('post'),
+		createdAt: t.expose('createdAt', { type: 'DateTime' }),
+		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
 	}),
 })
 
@@ -91,7 +93,7 @@ builder.mutationField('editComment', (t) =>
 		args: { input: t.arg({ type: EditCommentInput }) },
 		resolve: async (_, { input }, { user }) => {
 			const foundComment = await prisma.comment.findUnique({
-				where: { id: input.id },
+				where: { id: decodeGlobalID(input.id).id },
 				rejectOnNotFound: true,
 			})
 			if (!foundComment) {
@@ -101,7 +103,7 @@ builder.mutationField('editComment', (t) =>
 				throw new Error('You are not authorized to edit this comment.')
 			} else {
 				await prisma.comment.update({
-					where: { id: input.id },
+					where: { id: decodeGlobalID(input.id).id },
 					data: {
 						body: input.body,
 					},

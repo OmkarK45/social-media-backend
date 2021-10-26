@@ -29,9 +29,9 @@ model User {
   email                  String         @unique
   hashedPassword         String
   bio                    String?
-  avatar                 String? // we would probably want this to be from cloudinary 
-  coverImage             String?
-  coverImageBg           String?
+  avatar                 String // we would probably want this to be from cloudinary 
+  coverImage             String
+  coverImageBg           String
   posts                  Post[]
   likes                  Like[]
   comments               Comment[]

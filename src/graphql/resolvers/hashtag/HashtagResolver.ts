@@ -1,10 +1,10 @@
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
 
-builder.prismaObject('Hashtag', {
-	findUnique: (hashtag) => ({ id: hashtag.id }),
+builder.prismaNode('Hashtag', {
+	findUnique: (id) => ({ id }),
+	id: { resolve: (hashtag) => hashtag.id },
 	fields: (t) => ({
-		id: t.exposeID('id'),
 		hashtag: t.exposeString('hashtag'),
 		posts: t.relatedConnection('posts', {
 			cursor: 'id',
@@ -16,7 +16,6 @@ builder.queryField('popularHashtags', (t) =>
 	t.prismaConnection({
 		type: 'Hashtag',
 		cursor: 'id',
-		maxSize: 100,
 		defaultSize: 10,
 		resolve: async (query, _, args, _ctx) => {
 			const popularHashtags = await prisma.hashtag.findMany({

@@ -3,15 +3,15 @@ import { EditProfileInput } from '~/graphql/input'
 import { prisma } from '~/lib/db'
 import { upload } from '~/lib/upload'
 
-builder.prismaObject('User', {
-	findUnique: (user) => ({ id: user.id }),
+builder.prismaNode('User', {
+	findUnique: (id) => ({ id }),
+	id: { resolve: (user) => user.id },
 	fields: (t) => ({
-		id: t.exposeID('id'),
 		email: t.exposeString('email'),
 		bio: t.exposeString('bio', { nullable: true }),
-		avatar: t.exposeString('avatar', { nullable: true }),
-		coverImage: t.exposeString('coverImage', { nullable: true }),
-		coverImageBg: t.exposeString('coverImageBg', { nullable: true }),
+		avatar: t.exposeString('avatar'),
+		coverImage: t.exposeString('coverImage'),
+		coverImageBg: t.exposeString('coverImageBg'),
 		username: t.exposeString('username'),
 		lastName: t.exposeString('lastName', { nullable: true }),
 		firstName: t.exposeString('firstName'),
@@ -19,6 +19,7 @@ builder.prismaObject('User', {
 		updatedAt: t.expose('updatedAt', { type: 'DateTime' }),
 		followingCount: t.relationCount('following'),
 		followersCount: t.relationCount('followers'),
+		postsCount: t.relationCount('posts'),
 		followers: t.relatedConnection('followers', {
 			cursor: 'id',
 			totalCount: true,
@@ -101,7 +102,7 @@ builder.mutationField('editProfile', (t) =>
 					firstName,
 					avatar: avatarUpload?.url,
 					coverImage: coverImageUpload?.url,
-					coverImageBg: coverImageUpload?.url ?? null,
+					coverImageBg: coverImageUpload?.url,
 				},
 			})
 			return updatedUser

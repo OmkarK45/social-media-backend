@@ -9,11 +9,13 @@ input ChangePasswordInput {
   oldPassword: String!
 }
 
-type Comment {
+type Comment implements Node {
   body: String!
-  id: String!
+  createdAt: DateTime!
+  id: ID!
   isMine: Boolean!
   post: Post!
+  updatedAt: DateTime!
   user: User!
 }
 
@@ -67,7 +69,7 @@ input FollowUserInput {
   username: String!
 }
 
-type Hashtag {
+type Hashtag implements Node {
   hashtag: String!
   id: ID!
   posts(after: ID, before: ID, first: Int, last: Int): HashtagPostsConnection!
@@ -83,8 +85,8 @@ type HashtagPostsConnectionEdge {
   node: Post!
 }
 
-type Like {
-  id: String!
+type Like implements Node {
+  id: ID!
   post: Post!
   user: User!
 }
@@ -111,10 +113,16 @@ type Mutation {
   unfollowUser(input: FollowUserInput!): FollowResponse!
 }
 
-type Notification {
+interface Node {
+  id: ID!
+}
+
+type Notification implements Node {
   createdAt: DateTime!
   dispatcher: User!
+  entityId: String!
   id: ID!
+  isRead: Boolean!
   like: Like
   post: Post
   receiver: User!
@@ -129,14 +137,14 @@ type PageInfo {
   startCursor: String
 }
 
-type Post {
+type Post implements Node {
   blurHash: String
   caption: String
   comments(after: ID, before: ID, first: Int, last: Int): PostCommentsConnection!
   createdAt: DateTime!
   gifImage: String
   hashtags(after: ID, before: ID, first: Int, last: Int): PostHashtagsConnection!
-  id: String!
+  id: ID!
   image: String
   isLiked: Boolean!
   isMine: Boolean!
@@ -181,6 +189,8 @@ type Query {
   feed(after: ID, before: ID, first: Int, last: Int): QueryFeedConnection!
   health: String!
   me: User!
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
   notifications(after: ID, before: ID, first: Int, isRead: Boolean! = false, last: Int): QueryNotificationsConnection!
   popularHashtags(after: ID, before: ID, first: Int, last: Int): QueryPopularHashtagsConnection!
   postsByHashtag(after: ID, before: ID, first: Int, hashtag: String!, last: Int): QueryPostsByHashtagConnection!
@@ -298,11 +308,11 @@ input SignUpInput {
   username: String!
 }
 
-type User {
-  avatar: String
+type User implements Node {
+  avatar: String!
   bio: String
-  coverImage: String
-  coverImageBg: String
+  coverImage: String!
+  coverImageBg: String!
   createdAt: DateTime!
   email: String!
   firstName: String!
@@ -315,6 +325,7 @@ type User {
   isMe: Boolean!
   lastName: String
   posts(after: ID, before: ID, first: Int, last: Int): UserPostsConnection!
+  postsCount: Int!
   updatedAt: DateTime!
   username: String!
 }

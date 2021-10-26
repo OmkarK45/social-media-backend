@@ -2,13 +2,15 @@ import { NotificationType } from '@prisma/client'
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
 
-builder.prismaObject('Notification', {
-	findUnique: (notification) => ({ id: notification.id }),
+builder.prismaNode('Notification', {
+	findUnique: (id) => ({ id }),
+	id: { resolve: (notification) => notification.id },
 	fields: (t) => ({
-		id: t.exposeID('id'),
 		type: t.exposeString('type'),
+		isRead: t.exposeBoolean('isRead'),
 		receiver: t.relation('receiver'),
 		dispatcher: t.relation('dispatcher'),
+		entityId: t.exposeString('entityId'),
 		post: t.relation('post', { nullable: true }),
 		like: t.relation('like', { nullable: true }),
 		createdAt: t.expose('createdAt', { type: 'DateTime' }),
@@ -22,7 +24,7 @@ builder.queryField('notifications', (t) =>
 		cursor: 'id',
 		args: { isRead: t.arg.boolean({ defaultValue: false }) },
 		resolve: async (query, parent, { isRead }, { user }) => {
-			return await prisma.notification.findMany({
+			const notifications = await prisma.notification.findMany({
 				...query,
 				where: {
 					receiver: { id: user?.id },
@@ -30,6 +32,8 @@ builder.queryField('notifications', (t) =>
 				},
 				orderBy: { createdAt: 'desc' },
 			})
+
+			return notifications
 		},
 	})
 )

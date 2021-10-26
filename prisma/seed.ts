@@ -55,7 +55,7 @@ async function seedPosts() {
 
 async function main() {
 	console.log(`Start seeding ...`)
-	await seedUsers()
+	// await seedUsers()
 	// await seedPosts()
 	console.log(`Seeding finished.`)
 }
