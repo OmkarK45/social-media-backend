@@ -33,7 +33,9 @@ app.use(express.json())
 app.use(urlencoded({ extended: true }))
 app.use(
 	cors({
-		origin: '*',
+		origin: function (origin, callback) {
+			return callback(null, true)
+		},
 		credentials: true,
 		optionsSuccessStatus: 200,
 	})
