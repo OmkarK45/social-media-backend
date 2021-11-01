@@ -33,12 +33,9 @@ app.use(express.json())
 app.use(urlencoded({ extended: true }))
 app.use(
 	cors({
-		origin: [
-			'https://dogesocial.vercel.app',
-			'http://localhost:3000',
-			'https://social-media-frontend-smoky.vercel.app',
-		],
+		origin: '*',
 		credentials: true,
+		optionsSuccessStatus: 200,
 	})
 )
 app.use(graphqlUploadExpress({ maxFiles: 5, maxFileSize: 100000000 }))
