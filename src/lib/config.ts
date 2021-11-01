@@ -9,7 +9,6 @@ const configSchema = Joi.object({
 	DATABASE_URL: Joi.string().required(),
 	APP_AUTH_SECRET: Joi.string().required(),
 	TOKEN_EXPIRES_IN: Joi.string().required(),
-	WEB_URL: Joi.string().required(),
 	CLOUDINARY_URL: Joi.string(),
 	CLOUDINARY_API_KEY: Joi.string(),
 	CLOUDINARY_API_SECRET: Joi.string(),
