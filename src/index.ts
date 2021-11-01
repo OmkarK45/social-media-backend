@@ -50,7 +50,12 @@ async function start(port: number): Promise<void> {
 	server.applyMiddleware({
 		app,
 		path: '/graphql',
-		cors: { origin: 'http://localhost:3000', credentials: true },
+		cors: {
+			origin: function (origin, callback) {
+				return callback(null, true)
+			},
+			credentials: true,
+		},
 	})
 
 	return new Promise<void>((resolve) => {
