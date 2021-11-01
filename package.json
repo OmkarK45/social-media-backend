@@ -5,8 +5,8 @@
 	"license": "MIT",
 	"scripts": {
 		"dev": "ts-node-dev -r tsconfig-paths/register --transpile-only --no-notify -r dotenv/config  src/index.ts",
-		"build": "tsc",
-		"start": "node build/src/index.js",
+		"build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+		"start": "node -r dotenv/config  build/src/index.js",
 		"db:migrate": "npx prisma migrate dev",
 		"db:generate": "npx prisma generate",
 		"db:reset": "npx prisma migrate reset",
@@ -54,11 +54,15 @@
 		"@types/joi": "^17.2.3",
 		"@types/jsonwebtoken": "^8.5.4",
 		"@types/secure-password": "^3.1.1",
+		"@zerollup/ts-transform-paths": "^1.7.18",
 		"cross-env": "^7.0.3",
 		"graphiql-middleware": "^0.0.4",
+		"module-alias": "^2.2.2",
 		"prisma-dbml-generator": "^0.6.0",
 		"ts-node-dev": "^1.1.6",
+		"tsc-alias": "^1.4.0",
 		"tsconfig-paths": "^3.10.1",
+		"ttypescript": "^1.5.12",
 		"typescript": "^4.3.2"
 	}
 }

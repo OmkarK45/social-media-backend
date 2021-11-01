@@ -23,8 +23,14 @@
       "~/*" : ["./src/*"]
     }
   },
+  "plugins": [
+    {
+        "transform": "@zerollup/ts-transform-paths",
+    }
+],
   "exclude": [
     "./node_modules/*",
     "build"
-  ]
+  ],
+  
 }
