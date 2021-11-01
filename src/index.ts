@@ -34,8 +34,8 @@ app.use(urlencoded({ extended: true }))
 app.use(
 	cors({
 		origin: [
-			'http://localhost:3000',
 			'https://dogesocial.vercel.app',
+			'http://localhost:3000',
 			'https://social-media-frontend-smoky.vercel.app',
 		],
 		credentials: true,
