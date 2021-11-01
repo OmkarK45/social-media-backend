@@ -10,8 +10,8 @@ export const NEXT_IRON_SESSION_COOKIENAME = 'session.cookie'
 export const sessionOption: SessionOptions = {
 	cookieName: NEXT_IRON_SESSION_COOKIENAME,
 	cookieOptions: {
-		secure: process.env.NODE_ENV === 'production',
-		sameSite: 'lax',
+		secure: process.env.APP_ENV === 'production',
+		sameSite: 'none',
 		httpOnly: true,
 	},
 	password: [
