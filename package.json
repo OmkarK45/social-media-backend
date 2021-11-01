@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "ts-node-dev -r tsconfig-paths/register --transpile-only --no-notify -r dotenv/config  src/index.ts",
 		"build": "tsc",
-		"start": "node build/index.js",
+		"start": "node build/src/index.js",
 		"db:migrate": "npx prisma migrate dev",
 		"db:generate": "npx prisma generate",
 		"db:reset": "npx prisma migrate reset",
