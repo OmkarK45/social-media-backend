@@ -73,7 +73,11 @@ builder.queryField('whoToFollow', (t) =>
 						notIn: [...existingFollows, user?.id ?? ''],
 					},
 				},
-				orderBy: [{ posts: { _count: 'desc' } }],
+				orderBy: [
+					{ posts: { _count: 'desc' } },
+					{ followers: { _count: 'desc' } },
+					{ following: { _count: 'desc' } },
+				],
 			})
 		},
 	})

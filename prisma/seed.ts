@@ -2,6 +2,7 @@ import { PrismaClient, Prisma } from '@prisma/client'
 import { generateCoverImage } from '../src/graphql/utils/generateCoverImage'
 import { getAvatar, getCoverImages } from '../src/graphql/utils/avatar'
 import { hashPassword } from '../src/lib/password'
+import { userIds } from './userData'
 
 const prisma = new PrismaClient()
 
@@ -10,7 +11,7 @@ async function getPwd() {
 }
 
 const userData = [...Array(25).keys()].slice(1)
-const postData = [...Array(10).keys()].slice(1)
+const postData = [...Array(25).keys()].slice(1)
 
 async function seedUsers() {
 	for (const [u, i] of userData.entries()) {
@@ -39,13 +40,17 @@ async function seedPosts() {
 	for (const [p, i] of postData.entries()) {
 		const post = await prisma.post.create({
 			data: {
-				caption: `[${i}]Example post caption. #mood @james_brown https://google.com`,
-				user: { connect: { id: '95786742-da41-4031-a441-71d7c9fb472e' } },
+				caption: `[${
+					i + 9
+				}] Example post caption. This is a nice post by someone.`,
+				user: {
+					connect: { id: userIds[Math.floor(Math.random() * userIds.length)] },
+				},
 				image:
 					i % 3 === 0
 						? 'https://res.cloudinary.com/dogecorp/image/upload/v1632234712/sample.jpg'
 						: i % 5 === 0
-						? 'https://images.unsplash.com/photo-1634413656640-0bc2a33be4d1?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1228&q=80'
+						? 'https://images.unsplash.com/photo-1635371854719-bcb6871917f2?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1170&q=80'
 						: null,
 			},
 		})
@@ -56,7 +61,7 @@ async function seedPosts() {
 async function main() {
 	console.log(`Start seeding ...`)
 	// await seedUsers()
-	// await seedPosts()
+	await seedPosts()
 	console.log(`Seeding finished.`)
 }
 

@@ -120,8 +120,9 @@ builder.mutationField('deleteComment', (t) =>
 		type: ResultResponse,
 		args: { id: t.arg.string() },
 		resolve: async (_, { id }, { user }) => {
+			console.log(id)
 			const foundComment = await prisma.comment.findUnique({
-				where: { id },
+				where: { id: decodeGlobalID(id).id },
 			})
 			if (!foundComment) {
 				return { success: false }
@@ -130,7 +131,7 @@ builder.mutationField('deleteComment', (t) =>
 				throw new Error('You are not authorized to do this operation.')
 			} else {
 				await prisma.comment.delete({
-					where: { id },
+					where: { id: decodeGlobalID(id).id },
 				})
 			}
 			return { success: true }

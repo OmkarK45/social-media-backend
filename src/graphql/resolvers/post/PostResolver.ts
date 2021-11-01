@@ -8,7 +8,6 @@ import { builder } from '~/graphql/builder'
 import { HashTag, parseHashtags } from '~/graphql/utils/hashtags'
 
 import { ResultResponse } from '../ResultResponse'
-import { getHash } from '~/lib/blurhash'
 import { parseMentions } from '~/graphql/utils/parseMentions'
 import { getMentions } from '~/graphql/utils/getMentions'
 
@@ -64,7 +63,7 @@ const CreatePostInput = builder.inputType('CreatePostInput', {
 	fields: (t) => ({
 		caption: t.field({
 			type: 'String',
-			validate: { schema: z.string().min(1).max(256) },
+			validate: { schema: z.string().min(1).max(512) },
 		}),
 		media: t.field({ type: 'FileUpload', required: false }),
 		gifLink: t.string({ required: false }),
@@ -87,7 +86,6 @@ builder.mutationField('createPost', (t) =>
 			if (input.media && input.media !== null) {
 				media = await input.media
 				response = await upload(media)
-				blurHash = await getHash(response.url)
 			}
 			/** Upload to cloudinary */
 
@@ -103,7 +101,6 @@ builder.mutationField('createPost', (t) =>
 				data: {
 					caption: input.caption,
 					image: response ? response.url : null,
-					blurHash: blurHash ? blurHash.hash : null,
 					gifLink: input.gifLink,
 					user: { connect: { id: user!.id } },
 					...(hashTags.length > 0 && {
@@ -239,6 +236,29 @@ builder.queryField('postsByHashtag', (t) =>
 				},
 			})
 			return posts
+		},
+	})
+)
+
+builder.queryField('popularPosts', (t) =>
+	t.prismaConnection({
+		type: 'Post',
+		args: { orderBy: t.arg.string() },
+		cursor: 'id',
+		resolve: async (query, parent, args, ctx) => {
+			const popularPosts = await prisma.post.findMany({
+				...query,
+				where: {
+					userId: {
+						not: ctx.user?.id,
+					},
+				},
+				orderBy: [
+					{ likes: { _count: 'desc' } },
+					{ comments: { _count: 'desc' } },
+				],
+			})
+			return popularPosts
 		},
 	})
 )

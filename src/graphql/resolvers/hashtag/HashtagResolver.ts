@@ -9,6 +9,7 @@ builder.prismaNode('Hashtag', {
 		posts: t.relatedConnection('posts', {
 			cursor: 'id',
 		}),
+		postsCount: t.relationCount('posts'),
 	}),
 })
 

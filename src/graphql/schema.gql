@@ -73,6 +73,7 @@ type Hashtag implements Node {
   hashtag: String!
   id: ID!
   posts(after: ID, before: ID, first: Int, last: Int): HashtagPostsConnection!
+  postsCount: Int!
 }
 
 type HashtagPostsConnection {
@@ -193,6 +194,7 @@ type Query {
   nodes(ids: [ID!]!): [Node]!
   notifications(after: ID, before: ID, first: Int, isRead: Boolean! = false, last: Int): QueryNotificationsConnection!
   popularHashtags(after: ID, before: ID, first: Int, last: Int): QueryPopularHashtagsConnection!
+  popularPosts(after: ID, before: ID, first: Int, last: Int, orderBy: String!): QueryPopularPostsConnection!
   postsByHashtag(after: ID, before: ID, first: Int, hashtag: String!, last: Int): QueryPostsByHashtagConnection!
   postsContainingHashtag(after: ID, before: ID, first: Int, hashtag: String!, last: Int): QueryPostsContainingHashtagConnection!
   searchByHashtag(after: ID, before: ID, first: Int, keyword: String!, last: Int): QuerySearchByHashtagConnection!
@@ -231,6 +233,16 @@ type QueryPopularHashtagsConnection {
 type QueryPopularHashtagsConnectionEdge {
   cursor: String!
   node: Hashtag!
+}
+
+type QueryPopularPostsConnection {
+  edges: [QueryPopularPostsConnectionEdge]!
+  pageInfo: PageInfo!
+}
+
+type QueryPopularPostsConnectionEdge {
+  cursor: String!
+  node: Post!
 }
 
 type QueryPostsByHashtagConnection {
