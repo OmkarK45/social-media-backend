@@ -1,4 +1,4 @@
-import dotEnv from 'dotEnv'
+import dotEnv from 'dotenv'
 import express, { urlencoded } from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
