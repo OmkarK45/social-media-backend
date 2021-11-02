@@ -41,7 +41,7 @@ app.use(
 	})
 )
 app.use(graphqlUploadExpress({ maxFiles: 5, maxFileSize: 100000000 }))
-app.get('/health', (_, res) => res.json({ msg: 'Health OK. API is UP' }))
+app.get('/', (_, res) => res.json({ msg: 'Health OK. API is UP' }))
 
 async function start(port: number): Promise<void> {
 	const server = await apolloServer()
