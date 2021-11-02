@@ -33,9 +33,7 @@ app.use(express.json())
 app.use(urlencoded({ extended: true }))
 app.use(
 	cors({
-		origin: function (origin, callback) {
-			return callback(null, true)
-		},
+		origin: '*',
 		credentials: true,
 		optionsSuccessStatus: 200,
 	})
@@ -51,10 +49,9 @@ async function start(port: number): Promise<void> {
 		app,
 		path: '/graphql',
 		cors: {
-			origin: function (origin, callback) {
-				return callback(null, true)
-			},
+			origin: '*',
 			credentials: true,
+			optionsSuccessStatus: 200,
 		},
 	})
 
