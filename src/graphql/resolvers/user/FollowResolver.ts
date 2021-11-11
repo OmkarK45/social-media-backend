@@ -1,6 +1,5 @@
 import { builder } from '~/graphql/builder'
 import { prisma } from '~/lib/db'
-import { getConnection, getPrismaPaginationArgs } from '~/lib/page'
 
 const FollowUserInput = builder.inputType('FollowUserInput', {
 	fields: (t) => ({ username: t.string({}) }),

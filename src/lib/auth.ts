@@ -1,5 +1,3 @@
-import SecurePassword from 'secure-password'
-
 import { User } from '@prisma/client'
 import { AuthenticationError, ValidationError } from 'apollo-server-errors'
 
